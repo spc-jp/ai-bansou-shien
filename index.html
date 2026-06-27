@@ -1,1044 +1,916 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<link rel="icon" type="image/png" href="https://spc-jp.github.io/ai-soshikika-shindan/favicon.png">
-<link rel="apple-touch-icon" href="https://spc-jp.github.io/ai-soshikika-shindan/favicon.png">
-<title>AI組織化診断 | あなたの会社のAI活用力を診断</title>
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<style>
-:root {
-  --navy: #223670;
-  --gold: #D0A900;
-  --gold-light: #FFF5CC;
-  --sky: #1A7FA8;
-  --bg: #F7F8FC;
-  --white: #ffffff;
-  --text: #1a1a2e;
-  --sub: #555577;
-  --border: #dde3f0;
-  --radius: 16px;
-  --shadow: 0 4px 24px rgba(34,54,112,0.10);
-}
-* { box-sizing: border-box; margin: 0; padding: 0; }
-body { font-family: 'Hiragino Kaku Gothic ProN','Meiryo',sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
-
-/* ヘッダー */
-.app-header { background: var(--navy); color: #fff; padding: 12px 16px; display: flex; align-items: center; gap: 10px; position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 12px rgba(0,0,0,0.2); }
-.logo-icon { width: 38px; height: 38px; background: var(--gold); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 19px; flex-shrink: 0; }
-.header-titles { flex: 1; min-width: 0; }
-.header-titles h1 { font-size: 16px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.header-titles p { font-size: 10px; opacity: 0.7; margin-top: 1px; }
-.header-btns { display: flex; gap: 8px; flex-shrink: 0; }
-.header-btn { display: flex; flex-direction: column; align-items: center; gap: 2px; background: rgba(255,255,255,0.15); border: none; border-radius: 8px; color: #fff; cursor: pointer; padding: 6px 10px; font-size: 18px; line-height: 1; font-family: inherit; }
-.header-btn span { font-size: 9px; opacity: 0.85; }
-.header-btn:hover { background: rgba(255,255,255,0.28); }
-
-/* モーダル */
-.modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.55); z-index: 9999; align-items: center; justify-content: center; padding: 16px; }
-.modal-overlay.open { display: flex; }
-.modal-box { background: #fff; border-radius: 20px; width: 100%; max-width: 500px; max-height: 88vh; overflow-y: auto; box-shadow: 0 8px 40px rgba(0,0,0,0.25); animation: fadeUp 0.25s ease; }
-.modal-header { background: var(--navy); color: #fff; padding: 18px 22px; border-radius: 20px 20px 0 0; display: flex; align-items: center; justify-content: space-between; }
-.modal-header h2 { font-size: 16px; font-weight: 700; }
-.modal-close-btn { background: rgba(255,255,255,0.2); border: none; color: #fff; font-size: 20px; width: 32px; height: 32px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; }
-.modal-close-btn:hover { background: rgba(255,255,255,0.35); }
-.modal-body { padding: 22px; }
-
-/* 使い方モーダル */
-.how-purpose { background: var(--gold-light); border-left: 4px solid var(--gold); border-radius: 12px; padding: 16px 18px; margin-bottom: 20px; }
-.how-purpose-title { font-size: 14px; font-weight: 700; color: var(--navy); margin-bottom: 8px; }
-.how-purpose p { font-size: 13px; color: var(--text); line-height: 1.7; margin-top: 6px; }
-.how-step { display: flex; gap: 14px; align-items: flex-start; padding: 12px 0; border-bottom: 1px solid var(--border); }
-.how-step:last-child { border-bottom: none; }
-.how-step-num { background: var(--navy); color: #fff; font-size: 13px; font-weight: 700; width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-.how-step-title { font-size: 15px; font-weight: 700; color: var(--navy); margin-bottom: 3px; }
-.how-step-detail { font-size: 13px; color: var(--sub); line-height: 1.6; }
-.how-note { background: #f0f4ff; border-left: 4px solid var(--navy); border-radius: 8px; padding: 12px 14px; font-size: 13px; color: var(--text); line-height: 1.6; margin-top: 16px; }
-
-/* 設定モーダル */
-.setting-what { background: #f0f4ff; border-left: 4px solid var(--navy); border-radius: 12px; padding: 16px 18px; margin-bottom: 20px; }
-.setting-what-title { font-size: 14px; font-weight: 700; color: var(--navy); margin-bottom: 8px; }
-.setting-what p { font-size: 13px; color: var(--text); line-height: 1.7; margin-top: 4px; }
-.setting-what ul { padding-left: 18px; font-size: 13px; color: var(--sub); line-height: 1.9; margin-top: 8px; }
-.demo-section-title { font-size: 14px; font-weight: 700; color: var(--navy); margin-bottom: 10px; }
-.btn-demo { display: block; width: 100%; padding: 14px; background: linear-gradient(135deg, var(--navy), var(--sky)); color: #fff; border: none; border-radius: 10px; font-size: 15px; font-weight: 700; cursor: pointer; font-family: inherit; margin-bottom: 10px; }
-.btn-reset { display: block; width: 100%; padding: 14px; background: #fff0f0; border: 2px solid #e03535; border-radius: 10px; color: #e03535; font-size: 15px; font-weight: 700; cursor: pointer; font-family: inherit; margin-bottom: 10px; }
-.setting-version { text-align: center; font-size: 11px; color: var(--sub); margin-top: 16px; }
-
-/* コンテナ */
-.container { max-width: 680px; margin: 0 auto; padding: 24px 16px 60px; }
-.screen { display: none; }
-.screen.active { display: block; }
-
-/* プログレスバー */
-.progress-wrap { margin-bottom: 28px; }
-.progress-label { display: flex; justify-content: space-between; font-size: 13px; color: var(--sub); margin-bottom: 8px; }
-.progress-bg { background: var(--border); border-radius: 99px; height: 8px; overflow: hidden; }
-.progress-fill { background: linear-gradient(90deg, var(--navy), var(--sky)); height: 100%; border-radius: 99px; transition: width 0.4s ease; }
-
-/* カード */
-.card { background: #fff; border-radius: var(--radius); padding: 28px 24px; box-shadow: var(--shadow); margin-bottom: 20px; }
-.step-badge { display: inline-block; background: var(--navy); color: #fff; font-size: 11px; font-weight: 700; padding: 4px 12px; border-radius: 99px; margin-bottom: 12px; }
-.card h2 { font-size: 20px; font-weight: 700; color: var(--navy); line-height: 1.4; margin-bottom: 6px; }
-.subtitle { font-size: 13px; color: var(--sub); margin-bottom: 20px; line-height: 1.6; }
-
-/* フォーム */
-label.field-label { display: block; font-size: 14px; font-weight: 600; color: var(--navy); margin-bottom: 6px; }
-.required { color: #e03535; margin-left: 4px; font-size: 12px; }
-input[type="text"], select, textarea { width: 100%; border: 2px solid var(--border); border-radius: 10px; padding: 14px 16px; font-size: 16px; font-family: inherit; color: var(--text); background: #fff; transition: border-color 0.2s; margin-bottom: 18px; appearance: none; }
-input[type="text"]:focus, select:focus, textarea:focus { outline: none; border-color: var(--navy); box-shadow: 0 0 0 3px rgba(34,54,112,0.1); }
-textarea { min-height: 80px; resize: vertical; }
-select { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath fill='%23223670' d='M1 1l5 5 5-5'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 16px center; padding-right: 40px; }
-
-/* 宝探し */
-.takara-q { background: var(--gold-light); border-left: 4px solid var(--gold); border-radius: 12px; padding: 20px; margin-bottom: 18px; }
-.q-num { font-size: 12px; font-weight: 700; color: var(--gold); margin-bottom: 5px; }
-.q-text { font-size: 17px; font-weight: 700; color: var(--navy); line-height: 1.4; margin-bottom: 3px; }
-.q-hint { font-size: 12px; color: var(--sub); margin-bottom: 12px; }
-.takara-q textarea { margin-bottom: 0; background: #fff; border-color: rgba(208,169,0,0.4); min-height: 72px; }
-
-/* AI診断ラジオ */
-.ai-item { background: var(--bg); border-radius: 12px; padding: 18px 20px; margin-bottom: 14px; border: 1.5px solid var(--border); }
-.ai-item.done { border-color: var(--navy); background: #fff; box-shadow: 0 2px 10px rgba(34,54,112,0.07); }
-.ai-item-header { display: flex; gap: 10px; margin-bottom: 14px; }
-.ai-item-num { background: var(--navy); color: #fff; font-size: 12px; font-weight: 700; width: 26px; height: 26px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-.ai-item-title { font-size: 16px; font-weight: 700; color: var(--navy); }
-.ai-item-desc { font-size: 12px; color: var(--sub); margin-top: 2px; }
-.radio-scale { display: flex; gap: 6px; }
-.radio-scale label { flex: 1; cursor: pointer; }
-.radio-scale input[type="radio"] { display: none; }
-.radio-btn { display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 8px 3px; border: 2px solid var(--border); border-radius: 10px; background: #fff; font-size: 11px; color: var(--sub); text-align: center; line-height: 1.3; min-height: 60px; justify-content: center; }
-.radio-num { font-size: 18px; font-weight: 700; color: var(--border); }
-.radio-scale input:checked + .radio-btn { border-color: var(--navy); background: var(--navy); color: #fff; }
-.radio-scale input:checked + .radio-btn .radio-num { color: var(--gold); }
-
-/* 人材診断 */
-.human-item { background: var(--bg); border-radius: 12px; padding: 18px 20px; margin-bottom: 14px; border: 1.5px solid var(--border); }
-.human-item-title { font-size: 15px; font-weight: 700; color: var(--navy); margin-bottom: 8px; display: flex; gap: 8px; align-items: center; }
-.human-item-num { background: var(--sky); color: #fff; font-size: 11px; font-weight: 700; width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-.human-item-desc { font-size: 12px; color: var(--sub); margin-bottom: 12px; }
-
-/* ボタン */
-.btn-primary { display: block; width: 100%; padding: 18px; background: linear-gradient(135deg, var(--navy), var(--sky)); color: #fff; border: none; border-radius: 12px; font-size: 17px; font-weight: 700; cursor: pointer; font-family: inherit; margin-top: 8px; }
-.btn-secondary { display: block; width: 100%; padding: 14px; background: #fff; color: var(--navy); border: 2px solid var(--border); border-radius: 12px; font-size: 15px; font-weight: 600; cursor: pointer; font-family: inherit; margin-top: 10px; }
-.btn-gold { display: block; width: 100%; padding: 18px; background: linear-gradient(135deg, var(--gold), #b38f00); color: #fff; border: none; border-radius: 12px; font-size: 17px; font-weight: 700; cursor: pointer; font-family: inherit; text-align: center; text-decoration: none; margin-top: 8px; }
-
-/* トップ */
-.top-hero { background: linear-gradient(160deg, var(--navy) 0%, #1a2a5e 60%, var(--sky) 100%); border-radius: 20px; padding: 36px 24px; color: #fff; text-align: center; margin-bottom: 20px; position: relative; overflow: hidden; }
-.top-hero::before { content: ''; position: absolute; top: -40px; right: -40px; width: 200px; height: 200px; background: rgba(208,169,0,0.12); border-radius: 50%; }
-.hero-icon { font-size: 52px; margin-bottom: 14px; display: block; }
-.top-hero h1 { font-size: 24px; font-weight: 700; margin-bottom: 10px; line-height: 1.3; }
-.top-hero h1 span { color: var(--gold); }
-.catchcopy { font-size: 14px; opacity: 0.85; line-height: 1.7; margin-bottom: 26px; }
-.top-features { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px; }
-.top-feature { background: #fff; border-radius: 12px; padding: 14px; text-align: center; }
-.feat-icon { font-size: 26px; margin-bottom: 5px; }
-.feat-title { font-size: 13px; font-weight: 700; color: var(--navy); line-height: 1.4; }
-.top-time { background: var(--gold-light); border-radius: 10px; padding: 12px 16px; text-align: center; font-size: 14px; font-weight: 600; margin-bottom: 16px; }
-
-/* 結果 */
-.result-level-card { background: linear-gradient(135deg, var(--navy), var(--sky)); border-radius: 20px; padding: 30px 22px; text-align: center; color: #fff; margin-bottom: 18px; }
-.result-level-num { font-size: 76px; font-weight: 700; color: var(--gold); line-height: 1; margin-bottom: 4px; }
-.result-level-label { font-size: 22px; font-weight: 700; margin-bottom: 6px; }
-.result-level-desc { font-size: 14px; opacity: 0.85; line-height: 1.6; }
-.score-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 18px; }
-.score-box { background: #fff; border-radius: 12px; padding: 16px; text-align: center; box-shadow: var(--shadow); }
-.score-val { font-size: 30px; font-weight: 700; color: var(--navy); margin-bottom: 4px; }
-.score-label { font-size: 12px; color: var(--sub); }
-.chart-wrap { background: #fff; border-radius: 16px; padding: 20px; box-shadow: var(--shadow); margin-bottom: 18px; }
-.chart-wrap h3 { font-size: 16px; font-weight: 700; color: var(--navy); margin-bottom: 14px; text-align: center; }
-.takara-result { background: linear-gradient(135deg, var(--gold), #b38f00); border-radius: 16px; padding: 22px; color: #fff; margin-bottom: 18px; }
-.takara-result h3 { font-size: 17px; font-weight: 700; margin-bottom: 12px; }
-.takara-gem { background: rgba(255,255,255,0.2); border-radius: 10px; padding: 10px 14px; margin-bottom: 8px; display: flex; gap: 10px; align-items: center; }
-.gem-num { font-size: 20px; font-weight: 700; opacity: 0.7; flex-shrink: 0; }
-.gem-text { font-size: 14px; font-weight: 600; line-height: 1.4; }
-.api-placeholder { background: #f0f4ff; border: 2px dashed var(--navy); border-radius: 14px; padding: 22px; text-align: center; margin-bottom: 18px; }
-.api-placeholder .api-icon { font-size: 34px; margin-bottom: 10px; }
-.api-placeholder h3 { font-size: 15px; font-weight: 700; color: var(--navy); margin-bottom: 6px; }
-.api-placeholder p { font-size: 13px; color: var(--sub); line-height: 1.6; }
-.api-badge { display: inline-block; background: var(--navy); color: #fff; font-size: 11px; font-weight: 700; padding: 4px 12px; border-radius: 99px; margin-top: 10px; }
-.issue-card { background: #fff; border-radius: 12px; padding: 18px; box-shadow: var(--shadow); margin-bottom: 12px; border-left: 5px solid var(--navy); }
-.issue-card.p1 { border-left-color: #e03535; }
-.issue-card.p2 { border-left-color: var(--gold); }
-.issue-card.p3 { border-left-color: var(--sky); }
-.issue-priority { font-size: 11px; font-weight: 700; color: var(--sub); margin-bottom: 4px; }
-.issue-title { font-size: 15px; font-weight: 700; color: var(--navy); margin-bottom: 5px; }
-.issue-detail { font-size: 13px; color: var(--sub); line-height: 1.6; }
-.plan-phase { background: #fff; border-radius: 14px; box-shadow: var(--shadow); margin-bottom: 12px; overflow: hidden; }
-.plan-header { padding: 14px 18px; font-size: 15px; font-weight: 700; color: #fff; }
-.plan-header.p30 { background: #2a6b4a; }
-.plan-header.p60 { background: var(--sky); }
-.plan-header.p90 { background: var(--navy); }
-.plan-body { padding: 14px 18px; }
-.plan-action { display: flex; gap: 10px; padding: 9px 0; border-bottom: 1px solid var(--border); }
-.plan-action:last-child { border-bottom: none; }
-.plan-action-icon { font-size: 18px; flex-shrink: 0; }
-.plan-action-title { font-size: 14px; font-weight: 700; color: var(--navy); margin-bottom: 2px; }
-.plan-action-detail { font-size: 12px; color: var(--sub); line-height: 1.5; }
-.plan-tags { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 5px; }
-.plan-tag { font-size: 10px; padding: 2px 7px; border-radius: 99px; background: var(--bg); color: var(--sub); border: 1px solid var(--border); }
-.human-result { background: linear-gradient(135deg, #1a5278, var(--sky)); border-radius: 16px; padding: 22px; color: #fff; text-align: center; margin-bottom: 18px; }
-.human-type-label { font-size: 12px; opacity: 0.8; margin-bottom: 5px; }
-.human-type-name { font-size: 22px; font-weight: 700; margin-bottom: 7px; }
-.human-type-desc { font-size: 13px; opacity: 0.9; line-height: 1.6; }
-.rec-box { background: #fff; border-radius: 12px; padding: 14px 18px; box-shadow: var(--shadow); margin-bottom: 12px; display: flex; gap: 12px; align-items: flex-start; }
-.rec-icon { font-size: 26px; flex-shrink: 0; }
-.rec-title { font-size: 14px; font-weight: 700; color: var(--navy); margin-bottom: 3px; }
-.rec-detail { font-size: 12px; color: var(--sub); line-height: 1.5; }
-.next-step-block { background: #fff; border-radius: 20px; padding: 26px 22px; box-shadow: var(--shadow); margin-top: 18px; border-top: 4px solid var(--navy); }
-.next-step-title { font-size: 17px; font-weight: 700; color: var(--navy); margin-bottom: 8px; }
-.next-step-desc { font-size: 13px; color: var(--sub); line-height: 1.7; margin-bottom: 18px; }
-.btn-copy { display: block; width: 100%; padding: 17px; background: linear-gradient(135deg, var(--navy), var(--sky)); color: #fff; border: none; border-radius: 12px; font-size: 16px; font-weight: 700; cursor: pointer; font-family: inherit; margin-bottom: 10px; }
-.copy-toast { background: #e8f5e9; border: 2px solid #2a6b4a; border-radius: 10px; padding: 12px; font-size: 14px; font-weight: 600; color: #2a6b4a; text-align: center; margin-bottom: 12px; display: none; }
-.btn-contact { display: block; width: 100%; padding: 17px; background: linear-gradient(135deg, var(--gold), #b38f00); color: #fff; border-radius: 12px; font-size: 16px; font-weight: 700; text-align: center; text-decoration: none; }
-.next-step-note { font-size: 12px; color: var(--sub); text-align: center; margin-top: 10px; line-height: 1.6; }
-
-@keyframes fadeUp { from { opacity:0; transform:translateY(16px); } to { opacity:1; transform:translateY(0); } }
-.screen.active .card, .screen.active .top-hero, .screen.active .result-level-card { animation: fadeUp 0.3s ease; }
-@media (max-width:480px) {
-  .container { padding: 14px 10px 60px; }
-  .card { padding: 18px 14px; }
-  .radio-scale { gap: 4px; }
-  .radio-btn { font-size: 10px; padding: 6px 2px; }
-  .radio-num { font-size: 16px; }
-}
-
-/* LINE CTA */
-.line-cta {
-  background: #f0fdf4;
-  border: 2px solid #06C755;
-  border-radius: 16px;
-  padding: 24px 20px;
-  margin-top: 20px;
-  text-align: center;
-}
-.line-cta-icon { font-size: 36px; margin-bottom: 10px; }
-.line-cta h3 {
-  font-size: 18px;
-  font-weight: 700;
-  color: #1a4731;
-  margin-bottom: 10px;
-}
-.line-cta p {
-  font-size: 14px;
-  color: #2d6a4f;
-  line-height: 1.7;
-  margin-bottom: 14px;
-}
-.line-cta ul {
-  list-style: none;
-  text-align: left;
-  display: inline-block;
-  margin-bottom: 18px;
-}
-.line-cta ul li {
-  font-size: 14px;
-  color: #1a4731;
-  padding: 4px 0;
-  font-weight: 600;
-}
-.line-btn {
-  display: block;
-  width: 100%;
-  padding: 16px;
-  background: #06C755;
-  color: #fff;
-  border-radius: 12px;
-  font-size: 17px;
-  font-weight: 700;
-  text-decoration: none;
-  text-align: center;
-  transition: opacity 0.2s;
-}
-.line-btn:hover { opacity: 0.88; }
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI伴走支援ツール - 士業・先生業のためのAI活用プラットフォーム</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome CDN (Icons) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        navy: {
+                            50: '#f0f4f8',
+                            100: '#dbe3f0',
+                            600: '#254a85',
+                            700: '#1d3a68',
+                            800: '#162c50',
+                            900: '#0f1d35',
+                        },
+                        accent: {
+                            500: '#0ea5e9',
+                            600: '#0284c7',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* カスタムスクロールバーとアニメーション */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+        .tab-transition {
+            transition: all 0.3s ease-in-out;
+        }
+        .gradient-bg {
+            background: linear-gradient(135deg, #1e3a8a 0%, #0f172a 100%);
+        }
+    </style>
 </head>
-<body>
+<body class="bg-slate-50 text-slate-800 font-sans min-h-screen flex flex-col">
 
-<!-- ヘッダー -->
-<header class="app-header">
-  <div class="logo-icon">&#128269;</div>
-  <div class="header-titles">
-    <h1>AI組織化診断</h1>
-    <p>AIを組織の力に変える診断アプリ</p>
-  </div>
-  <div class="header-btns">
-    <button class="header-btn" id="btnHow">&#10067;<span>使い方</span></button>
-    <button class="header-btn" id="btnSet">&#9881;&#65039;<span>設定</span></button>
-  </div>
-</header>
+    <!-- トースト通知用コンテナ -->
+    <div id="toast-container" class="fixed top-5 right-5 z-50 pointer-events-none flex flex-col gap-2"></div>
 
-<!-- 使い方モーダル -->
-<div class="modal-overlay" id="howModal">
-  <div class="modal-box">
-    <div class="modal-header">
-      <h2>&#10067; 使い方ガイド</h2>
-      <button class="modal-close-btn" id="closeHow">&#10005;</button>
-    </div>
-    <div class="modal-body">
-      <div class="how-purpose">
-        <div class="how-purpose-title">&#127919; このアプリの目的</div>
-        <p>「うちの会社、AIをどう使えばいいの？」と感じている経営者の方に向けて作りました。</p>
-        <p>難しい言葉や専門知識は一切不要です。質問に正直に答えていただくだけで、あなたの会社の現状を分析し、「今すぐできること」「90日以内にやること」を具体的にお伝えします。</p>
-        <p>さらに、あなたの会社だけが持つ「隠れた強み＝宝」も一緒に発見します。AIは道具です。その道具を最大限に活かすための地図を、この診断でお渡しします。</p>
-      </div>
-      <div class="how-purpose-title" style="margin:18px 0 12px;">&#128203; アプリの使い方</div>
-      <div class="how-step">
-        <div class="how-step-num">1</div>
-        <div><div class="how-step-title">会社情報を入力する</div><div class="how-step-detail">会社名・業種・従業員数・経営課題を入力します。必須項目は3つだけです。</div></div>
-      </div>
-      <div class="how-step">
-        <div class="how-step-num">2</div>
-        <div><div class="how-step-title">&#128142; 会社の宝探し診断に答える（6問）</div><div class="how-step-detail">お客様からよく言われること、競合との違いなど6つの質問です。正解はありません。思い浮かんだことをそのまま書いてください。</div></div>
-      </div>
-      <div class="how-step">
-        <div class="how-step-num">3</div>
-        <div><div class="how-step-title">&#128202; AI組織化診断を選ぶ（10項目）</div><div class="how-step-detail">経営者のAI理解度・社員の利用率など10項目を1〜5の5段階で選びます。今の状態に正直に選んでください。</div></div>
-      </div>
-      <div class="how-step">
-        <div class="how-step-num">4</div>
-        <div><div class="how-step-title">&#128101; AI人材レベル診断を選ぶ（8問）</div><div class="how-step-detail">誰が社内でAIを推進するかを明確にするための診断です。同じく5段階で選ぶだけです。</div></div>
-      </div>
-      <div class="how-step">
-        <div class="how-step-num">5</div>
-        <div><div class="how-step-title">&#128197; 診断結果・90日計画を確認する</div><div class="how-step-detail">AI活用レベル・レーダーチャート・優先課題・90日アクションプランが表示されます。</div></div>
-      </div>
-      <div class="how-note">&#9200; 所要時間は約5〜10分です。「設定」ボタンのデモデータを使うと診断の流れをすぐ確認できます。</div>
-    </div>
-  </div>
-</div>
+    <!-- ヘッダー -->
+    <header class="gradient-bg text-white shadow-lg border-b border-navy-700">
+        <div class="max-w-7xl mx-auto px-4 py-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row justify-between items-center gap-4">
+            <div class="flex items-center gap-3">
+                <div class="p-2.5 bg-blue-600 rounded-lg shadow-inner">
+                    <i class="fa-solid fa-brain text-2xl text-white"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl sm:text-2xl font-bold tracking-tight">AI伴走支援アプリ</h1>
+                    <p class="text-xs text-blue-300 font-medium">士業・コンサル・先生業のためのAI収益化パッケージ</p>
+                </div>
+            </div>
+            <div class="flex items-center gap-3 w-full sm:w-auto justify-end">
+                <span class="hidden md:inline-block text-xs bg-navy-800 text-blue-300 px-3 py-1.5 rounded-full border border-blue-500/30">
+                    <i class="fa-solid fa-graduation-cap mr-1"></i> 認定「AI伴走士」監修
+                </span>
+                <button onclick="switchTab('seminar')" class="w-full sm:w-auto bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white text-sm font-bold px-4 py-2 rounded-lg shadow-md hover:shadow-lg transition-all duration-200 flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-circle-play animate-pulse"></i>
+                    <span>特別無料セミナーに参加する</span>
+                </button>
+            </div>
+        </div>
+    </header>
 
-<!-- 設定モーダル -->
-<div class="modal-overlay" id="settingModal">
-  <div class="modal-box">
-    <div class="modal-header">
-      <h2>&#9881;&#65039; 設定</h2>
-      <button class="modal-close-btn" id="closeSet">&#10005;</button>
-    </div>
-    <div class="modal-body">
-      <div class="setting-what">
-        <div class="setting-what-title">&#128269; このアプリで何ができるの？</div>
-        <p>「AI組織化診断」は、あなたの会社のAI活用力を5段階で診断し、会社の強み・課題・90日の行動計画を自動でまとめてくれるアプリです。難しい知識は不要です。質問に答えるだけでコンサルタントが作るような診断レポートが手元に届きます。</p>
-        <ul>
-          <li>&#128142; 会社の隠れた強み（宝）を発見</li>
-          <li>&#128202; AI活用レベルをレーダーチャートで可視化</li>
-          <li>&#128101; AI推進に向いている人材タイプを判定</li>
-          <li>&#128197; 今日からできる90日アクションプランを提示</li>
-        </ul>
-      </div>
-      <div class="demo-section-title">&#129514; デモデータ</div>
-      <p style="font-size:13px;color:var(--sub);margin-bottom:12px;">サンプルデータを自動入力して、診断の流れをすぐに体験できます。</p>
-      <button class="btn-demo" id="btnDemo">&#9654; デモデータを入力する</button>
-      <button class="btn-reset" id="btnReset">&#128465; 入力データをクリアする</button>
-      <div class="setting-version">AI組織化診断 ver.1.0（APIなし版）<br>Developed by Smile Plus Consulting</div>
-    </div>
-  </div>
-</div>
+    <!-- メインコンテンツ -->
+    <main class="flex-grow max-w-7xl w-full mx-auto px-4 py-6 sm:px-6 lg:px-8">
+        
+        <!-- セミナー連動型のアラート（トップバー） -->
+        <div class="mb-6 bg-blue-50 border-l-4 border-blue-600 p-4 rounded-r-xl shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div class="flex items-start gap-3">
+                <span class="text-blue-600 text-xl mt-0.5"><i class="fa-solid fa-circle-info"></i></span>
+                <div>
+                    <h3 class="font-bold text-blue-900 text-sm sm:text-base">AIを「自己流の壁打ち」で終わらせていませんか？</h3>
+                    <p class="text-xs sm:text-sm text-slate-600 mt-0.5">本アプリはAIを効率的に使いこなす「AI伴走士」の活動を疑似体験できるプロトタイプです。まずは各タブを試してみましょう。</p>
+                </div>
+            </div>
+            <div class="flex gap-2">
+                <button onclick="switchTab('checklist')" class="text-xs font-semibold text-blue-700 bg-blue-100 hover:bg-blue-200 px-3 py-2 rounded-lg transition">
+                    まずはチェックリスト
+                </button>
+            </div>
+        </div>
 
-<!-- メインコンテンツ -->
-<div class="container">
+        <!-- タブナビゲーション -->
+        <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-1 mb-6 flex flex-wrap gap-1">
+            <button id="tab-checklist" onclick="switchTab('checklist')" class="flex-1 min-w-[120px] text-center py-3 px-2 sm:px-4 rounded-lg text-xs sm:text-sm font-bold transition-all duration-200 text-navy-700 bg-slate-50 hover:bg-slate-100 flex items-center justify-center gap-2">
+                <i class="fa-solid fa-list-check text-base"></i>
+                <span>1. 20業務チェック</span>
+            </button>
+            <button id="tab-calculator" onclick="switchTab('calculator')" class="flex-1 min-w-[120px] text-center py-3 px-2 sm:px-4 rounded-lg text-xs sm:text-sm font-bold transition-all duration-200 text-slate-500 hover:text-navy-700 hover:bg-slate-50 flex items-center justify-center gap-2">
+                <i class="fa-solid fa-calculator text-base"></i>
+                <span>2. 収益化シミュレーター</span>
+            </button>
+            <button id="tab-prompt" onclick="switchTab('prompt')" class="flex-1 min-w-[120px] text-center py-3 px-2 sm:px-4 rounded-lg text-xs sm:text-sm font-bold transition-all duration-200 text-slate-500 hover:text-navy-700 hover:bg-slate-50 flex items-center justify-center gap-2">
+                <i class="fa-solid fa-terminal text-base"></i>
+                <span>3. SNSプロンプト</span>
+            </button>
+            <button id="tab-seminar" onclick="switchTab('seminar')" class="flex-1 min-w-[120px] text-center py-3 px-2 sm:px-4 rounded-lg text-xs sm:text-sm font-bold transition-all duration-200 text-slate-500 hover:text-navy-700 hover:bg-slate-50 flex items-center justify-center gap-2">
+                <i class="fa-solid fa-circle-question text-base"></i>
+                <span>AI伴走士とは？</span>
+            </button>
+        </div>
 
-<!-- SCREEN 0: トップ -->
-<div id="screen0" class="screen active">
-  <div class="top-hero">
-    <span class="hero-icon">&#127942;</span>
-    <h1>あなたの会社の<br><span>AI活用力</span>を診断</h1>
-    <p class="catchcopy">AIを組織の力に変えるための無料診断ツールです。<br>診断後に90日実行計画をお渡しします。</p>
-  </div>
-  <div class="top-features">
-    <div class="top-feature"><div class="feat-icon">&#128142;</div><div class="feat-title">会社の宝<br>を発見</div></div>
-    <div class="top-feature"><div class="feat-icon">&#128202;</div><div class="feat-title">AI活用<br>レベル診断</div></div>
-    <div class="top-feature"><div class="feat-icon">&#128101;</div><div class="feat-title">AI人材<br>レベル診断</div></div>
-    <div class="top-feature"><div class="feat-icon">&#128197;</div><div class="feat-title">90日<br>実行計画</div></div>
-  </div>
-  <div class="top-time">&#9201; 所要時間：約5〜10分（全部で24問）</div>
-  <button class="btn-primary" id="btnStart">&#10024; 無料で診断スタート</button>
-</div>
+        <!-- 各コンテンツエリア -->
+        <div class="tab-content">
+            
+            <!-- 機能1: 先生業AI活用20業務チェックリスト -->
+            <section id="content-checklist" class="space-y-6">
+                <div class="bg-white rounded-2xl shadow-md border border-slate-200 overflow-hidden">
+                    <div class="gradient-bg p-6 text-white">
+                        <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                            <div>
+                                <span class="bg-blue-500/30 text-blue-300 text-xs px-2.5 py-1 rounded-full font-bold border border-blue-400/20">機能 1</span>
+                                <h2 class="text-xl sm:text-2xl font-bold mt-2 flex items-center gap-2">
+                                    <i class="fa-solid fa-list-check text-blue-400"></i> 先生業AI活用 20業務チェックリスト
+                                </h2>
+                                <p class="text-xs sm:text-sm text-slate-300 mt-1">
+                                    あなたの普段の業務、または顧客へのサポート業務のうち、AIで自動化・効率化できる項目にチェックを入れてください。
+                                </p>
+                            </div>
+                            <div class="bg-navy-800/80 border border-slate-700 p-3 rounded-xl w-full md:w-auto flex items-center justify-between gap-4">
+                                <div>
+                                    <div class="text-xs text-slate-400 font-bold">選択中の項目</div>
+                                    <div class="text-xl font-black text-amber-400" id="checked-count-display">0 / 20</div>
+                                </div>
+                                <div class="w-16 h-1.5 bg-slate-700 rounded-full overflow-hidden">
+                                    <div id="progress-bar" class="h-full bg-amber-400 transition-all duration-300" style="width: 0%"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
 
-<!-- SCREEN 1: 会社情報 -->
-<div id="screen1" class="screen">
-  <div class="progress-wrap">
-    <div class="progress-label"><span>STEP 1 / 5　会社情報入力</span><span>20%</span></div>
-    <div class="progress-bg"><div class="progress-fill" style="width:20%"></div></div>
-  </div>
-  <div class="card">
-    <span class="step-badge">STEP 1</span>
-    <h2>まず、会社のことを<br>教えてください</h2>
-    <p class="subtitle">入力した内容をもとに、あなたの会社専用の診断結果を作ります。</p>
-    <label class="field-label">会社名（屋号）<span class="required">必須</span></label>
-    <input type="text" id="companyName" placeholder="例：スマイルプラスコンサルティング">
-    <label class="field-label">業種<span class="required">必須</span></label>
-    <select id="industry">
-      <option value="">▼ 業種を選んでください</option>
-      <option>税理士・会計事務所</option><option>社労士事務所</option><option>行政書士事務所</option>
-      <option>弁護士事務所</option><option>製造業</option><option>建設業</option>
-      <option>飲食業・食品</option><option>美容業（美容室・エステ等）</option><option>小売業</option>
-      <option>サービス業</option><option>IT・Web業</option><option>医療・介護</option>
-      <option>不動産業</option><option>運送・物流</option><option>その他</option>
-    </select>
-    <label class="field-label">従業員数<span class="required">必須</span></label>
-    <select id="employees">
-      <option value="">▼ 人数を選んでください</option>
-      <option>1名（個人事業主）</option><option>2〜5名</option><option>6〜10名</option>
-      <option>11〜30名</option><option>31〜50名</option><option>51名以上</option>
-    </select>
-    <label class="field-label">事業内容（一言で）</label>
-    <input type="text" id="business" placeholder="例：中小企業向けWebマーケティング支援">
-    <label class="field-label">現在の経営課題</label>
-    <textarea id="challenge" placeholder="例：新規集客が少ない、社員の残業が多い、売上が伸び悩んでいる など"></textarea>
-    <button class="btn-primary" id="btnStep1Next">次へ　→　会社の宝探し診断</button>
-  </div>
-</div>
+                    <div class="p-6">
+                        <!-- アラートメッセージ（3つ以上で表示） -->
+                        <div id="checklist-alert" class="hidden mb-6 p-5 bg-gradient-to-r from-emerald-50 to-teal-50 border-l-4 border-emerald-500 rounded-r-xl transition-all duration-300">
+                            <div class="flex items-start gap-3">
+                                <span class="text-emerald-500 text-2xl"><i class="fa-solid fa-circle-check"></i></span>
+                                <div class="flex-grow">
+                                    <h4 class="font-bold text-emerald-900 text-base">素晴らしい第一歩です！今すぐAI活用を始めましょう！</h4>
+                                    <p class="text-sm text-slate-600 mt-1">
+                                        チェックした業務は、AIを使うことで作業時間を劇的に短縮、あるいは高付加価値化できます。特に複数の項目が該当する場合、<strong>「AI伴走士」</strong>として顧客に提案し、高単価な顧問報酬を獲得するポテンシャルが非常に高い状態です。
+                                    </p>
+                                    <div class="mt-4 flex flex-wrap gap-2">
+                                        <button onclick="switchTab('calculator')" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold px-4 py-2 rounded-lg shadow transition">
+                                            次のステップ：収益インパクトを試算する <i class="fa-solid fa-arrow-right ml-1"></i>
+                                        </button>
+                                        <button onclick="switchTab('seminar')" class="bg-white hover:bg-slate-100 text-slate-700 border border-slate-300 text-xs font-bold px-4 py-2 rounded-lg transition">
+                                            AI伴走士セミナーで具体策を見る
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
 
-<!-- SCREEN 2: 宝探し -->
-<div id="screen2" class="screen">
-  <div class="progress-wrap">
-    <div class="progress-label"><span>STEP 2 / 5　会社の宝探し診断</span><span>40%</span></div>
-    <div class="progress-bg"><div class="progress-fill" style="width:40%"></div></div>
-  </div>
-  <div class="card">
-    <span class="step-badge">STEP 2</span>
-    <h2>&#128142; 会社の宝を一緒に探しましょう</h2>
-    <p class="subtitle">正解はありません。頭に浮かんだことをそのまま書いてください。AIがあなたの会社の隠れた強みを見つけます。</p>
-    <div class="takara-q">
-      <div class="q-num">Q1 / 6</div>
-      <div class="q-text">お客様からよく言われるお褒めの言葉は何ですか？</div>
-      <div class="q-hint">例：「対応が早い」「安心できる」「丁寧に教えてくれる」</div>
-      <textarea id="t1" placeholder="思い浮かんだ言葉をそのまま書いてください"></textarea>
-    </div>
-    <div class="takara-q">
-      <div class="q-num">Q2 / 6</div>
-      <div class="q-text">競合他社と比べて、自信を持って言える強みは？</div>
-      <div class="q-hint">例：「特殊な技術がある」「地域で一番長い」「価格より質で選ばれる」</div>
-      <textarea id="t2" placeholder="思い浮かんだ強みをそのまま書いてください"></textarea>
-    </div>
-    <div class="takara-q">
-      <div class="q-num">Q3 / 6</div>
-      <div class="q-text">社員が「ここで働いていて良かった」と感じる理由は？</div>
-      <div class="q-hint">例：「チームワークが良い」「仕事に誇りを持てる」「社長が話を聞いてくれる」</div>
-      <textarea id="t3" placeholder="思い浮かんだことをそのまま書いてください"></textarea>
-    </div>
-    <div class="takara-q">
-      <div class="q-num">Q4 / 6</div>
-      <div class="q-text">長くお付き合いいただけるお客様が多い理由は何でしょう？</div>
-      <div class="q-hint">例：「毎年来てくれる」「10年以上のお客様がいる」「信頼関係がある」</div>
-      <textarea id="t4" placeholder="思い浮かんだことをそのまま書いてください"></textarea>
-    </div>
-    <div class="takara-q">
-      <div class="q-num">Q5 / 6</div>
-      <div class="q-text">紹介や口コミが起きるとしたら、どんな場面ですか？</div>
-      <div class="q-hint">例：「仕事が終わった後に感謝される」「知人に勧めてくれる」</div>
-      <textarea id="t5" placeholder="思い浮かんだことをそのまま書いてください"></textarea>
-    </div>
-    <div class="takara-q">
-      <div class="q-num">Q6 / 6</div>
-      <div class="q-text">もし御社がなくなったら、一番困るのはどんな方ですか？</div>
-      <div class="q-hint">例：「近所の高齢者の方」「中小企業の経営者」「製品に依存している顧客」</div>
-      <textarea id="t6" placeholder="思い浮かんだことをそのまま書いてください"></textarea>
-    </div>
-    <button class="btn-primary" id="btnTo3">次へ　→　AI組織化診断</button>
-    <button class="btn-secondary" id="btnBack2">&#8592; 前に戻る</button>
-  </div>
-</div>
+                        <!-- カテゴリ別の業務チェックボックス -->
+                        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                            
+                            <!-- カテゴリ1 -->
+                            <div class="bg-slate-50 p-4 rounded-xl border border-slate-200">
+                                <h3 class="font-bold text-navy-700 border-b border-slate-300 pb-2 mb-3 flex items-center gap-2 text-sm sm:text-base">
+                                    <span class="bg-blue-600 text-white w-5 h-5 rounded-full flex items-center justify-center text-xs">A</span>
+                                    <span>事務・文書作成（効率化）</span>
+                                </h3>
+                                <div class="space-y-3" id="category-a">
+                                    <!-- JSで挿入 -->
+                                </div>
+                            </div>
 
-<!-- SCREEN 3: AI組織化診断 -->
-<div id="screen3" class="screen">
-  <div class="progress-wrap">
-    <div class="progress-label"><span>STEP 3 / 5　AI組織化診断</span><span>60%</span></div>
-    <div class="progress-bg"><div class="progress-fill" style="width:60%"></div></div>
-  </div>
-  <div class="card">
-    <span class="step-badge">STEP 3</span>
-    <h2>&#128202; AI組織化診断</h2>
-    <p class="subtitle">現在の状況に一番近いものを選んでください。正直に選んでいただくほど診断の精度が上がります。</p>
-    <div id="aiItems"></div>
-    <button class="btn-primary" id="btnTo4">次へ　→　AI人材レベル診断</button>
-    <button class="btn-secondary" id="btnBack3">&#8592; 前に戻る</button>
-  </div>
-</div>
+                            <!-- カテゴリ2 -->
+                            <div class="bg-slate-50 p-4 rounded-xl border border-slate-200">
+                                <h3 class="font-bold text-navy-700 border-b border-slate-300 pb-2 mb-3 flex items-center gap-2 text-sm sm:text-base">
+                                    <span class="bg-blue-600 text-white w-5 h-5 rounded-full flex items-center justify-center text-xs">B</span>
+                                    <span>提案・コンサル・企画（価値向上）</span>
+                                </h3>
+                                <div class="space-y-3" id="category-b">
+                                    <!-- JSで挿入 -->
+                                </div>
+                            </div>
 
-<!-- SCREEN 4: AI人材診断 -->
-<div id="screen4" class="screen">
-  <div class="progress-wrap">
-    <div class="progress-label"><span>STEP 4 / 5　AI人材レベル診断</span><span>80%</span></div>
-    <div class="progress-bg"><div class="progress-fill" style="width:80%"></div></div>
-  </div>
-  <div class="card">
-    <span class="step-badge">STEP 4</span>
-    <h2>&#128101; AI人材レベル診断</h2>
-    <p class="subtitle">AIの課題は「ツール」よりも「人」にあります。御社の人材力を診断します。</p>
-    <div id="humanItems"></div>
-    <button class="btn-primary" id="btnCalc">診断結果を見る　&#8594;</button>
-    <button class="btn-secondary" id="btnBack4">&#8592; 前に戻る</button>
-  </div>
-</div>
+                            <!-- カテゴリ3 -->
+                            <div class="bg-slate-50 p-4 rounded-xl border border-slate-200">
+                                <h3 class="font-bold text-navy-700 border-b border-slate-300 pb-2 mb-3 flex items-center gap-2 text-sm sm:text-base">
+                                    <span class="bg-blue-600 text-white w-5 h-5 rounded-full flex items-center justify-center text-xs">C</span>
+                                    <span>情報発信・顧客開拓（集客・広報）</span>
+                                </h3>
+                                <div class="space-y-3" id="category-c">
+                                    <!-- JSで挿入 -->
+                                </div>
+                            </div>
 
-<!-- SCREEN 5: 結果 -->
-<div id="screen5" class="screen">
-  <div class="progress-wrap">
-    <div class="progress-label"><span>STEP 5 / 5　診断結果</span><span>100%</span></div>
-    <div class="progress-bg"><div class="progress-fill" style="width:100%"></div></div>
-  </div>
-  <div class="result-level-card">
-    <div id="resLevelNum" class="result-level-num">-</div>
-    <div id="resLevelLabel" class="result-level-label">診断中...</div>
-    <div id="resLevelDesc" class="result-level-desc"></div>
-  </div>
-  <div class="score-grid">
-    <div class="score-box"><div id="resOrgScore" class="score-val">-</div><div class="score-label">AI組織化スコア<br>（満点50点）</div></div>
-    <div class="score-box"><div id="resHumanScore" class="score-val">-</div><div class="score-label">AI人材スコア<br>（満点40点）</div></div>
-  </div>
-  <div class="chart-wrap"><h3>&#128202; AI組織化レーダーチャート</h3><canvas id="radarChart" style="max-height:320px;"></canvas></div>
-  <div class="takara-result">
-    <h3>&#128142; あなたの会社の宝</h3>
-    <div class="takara-gem"><div class="gem-num">01</div><div class="gem-text" id="gem1">分析中...</div></div>
-    <div class="takara-gem"><div class="gem-num">02</div><div class="gem-text" id="gem2">分析中...</div></div>
-    <div class="takara-gem"><div class="gem-num">03</div><div class="gem-text" id="gem3">分析中...</div></div>
-  </div>
-  <div class="api-placeholder">
-    <div class="api-icon">&#129302;</div>
-    <h3>AIが詳細レポートを自動生成します</h3>
-    <p>ここにClaude APIによる「会社の宝活用レポート」が表示されます。経営課題・AI活用計画・推奨ツールをコンサルタント視点でお伝えします。</p>
-    <span class="api-badge">PRO版 API連携予定</span>
-  </div>
-  <div class="card" style="margin-bottom:18px;">
-    <span class="step-badge">課題分析</span>
-    <h2 style="margin-bottom:14px;">優先して改善すべき課題</h2>
-    <div id="issueList"></div>
-  </div>
-  <div class="card" style="margin-bottom:18px;">
-    <span class="step-badge">90日実行計画</span>
-    <h2 style="margin-bottom:14px;">&#128197; 90日アクションプラン</h2>
-    <div id="planList"></div>
-  </div>
-  <div id="humanResultWrap"></div>
-  <div class="next-step-block">
-    <div class="next-step-title">&#128236; 次のステップ</div>
-    <p class="next-step-desc">診断結果をコピーして、問い合わせフォームに貼り付けてご送信ください。スタッフが内容を確認してご連絡いたします。</p>
-    <button class="btn-copy" id="copyBtn">&#128203; 診断結果をコピーする</button>
-    <div class="copy-toast" id="copyToast">&#10003; コピーしました！下のボタンからフォームへどうぞ</div>
-    <a href="https://www.smileplusctg.com/#contact" target="_blank" class="btn-gold">&#128140; SPCへ無料相談する（問い合わせフォームへ）</a>
-    <div class="next-step-note">※ フォームの「お問い合わせ内容」欄にコピーした内容を貼り付けてください。</div>
-  </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
 
-  <div class="line-cta">
-    <div class="line-cta-icon">&#127807;</div>
-    <h3>もっと詳しく相談したい方へ</h3>
-    <p>診断してみて「気になった」そのタイミングが一番のチャンスです。<br>
-    LINEで気軽に一言送るだけで、30分の無料相談を予約できます。</p>
-    <ul>
-      <li>&#10003; フォーム入力不要・LINEで予約完了</li>
-      <li>&#10003; 「話だけ聞きたい」だけでも大歓迎</li>
-      <li>&#10003; 埼玉・越谷エリアは対面もOK</li>
-    </ul>
-    <a href="https://lin.ee/s9t1ERI" target="_blank" class="line-btn">
-      &#127807; LINEで無料相談する
-    </a>
-  </div>
-  <button class="btn-secondary" id="btnRestart" style="margin-top:16px;">&#128260; 最初からやり直す</button>
-</div>
+            <!-- 機能2: AI収益化設計シート -->
+            <section id="content-calculator" class="hidden space-y-6">
+                <div class="bg-white rounded-2xl shadow-md border border-slate-200 overflow-hidden">
+                    <div class="gradient-bg p-6 text-white">
+                        <span class="bg-blue-500/30 text-blue-300 text-xs px-2.5 py-1 rounded-full font-bold border border-blue-400/20">機能 2</span>
+                        <h2 class="text-xl sm:text-2xl font-bold mt-2 flex items-center gap-2">
+                            <i class="fa-solid fa-calculator text-blue-400"></i> AI収益化設計シート (シミュレーター)
+                        </h2>
+                        <p class="text-xs sm:text-sm text-slate-300 mt-1">
+                            現在の単価や削減時間、新サービスの想定単価を入力してください。AI導入による月間・年間の「収益増加ポテンシャル」がリアルタイムで可視化されます。
+                        </p>
+                    </div>
 
-</div><!-- /container -->
+                    <div class="p-6">
+                        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+                            
+                            <!-- 入力フォームエリア（左側8カラム） -->
+                            <div class="lg:col-span-7 space-y-6">
+                                
+                                <!-- 1. 時間削減効果 -->
+                                <div class="bg-slate-50 p-5 rounded-xl border border-slate-200 space-y-4">
+                                    <div class="flex items-center gap-2 text-navy-700 border-b border-slate-200 pb-2">
+                                        <span class="bg-blue-100 text-blue-700 w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold">1</span>
+                                        <h3 class="font-bold text-sm sm:text-base">時間削減による価値創出</h3>
+                                    </div>
+                                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                        <div>
+                                            <label class="block text-xs font-bold text-slate-600 mb-1">想定するご自身の時給（円）</label>
+                                            <div class="relative rounded-md shadow-sm">
+                                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                                    <span class="text-slate-400 text-xs">¥</span>
+                                                </div>
+                                                <input type="number" id="hourly-rate" value="5000" min="1000" max="50000" step="500" class="block w-full pl-8 pr-12 py-2 text-sm border border-slate-300 rounded-md focus:ring-blue-500 focus:border-blue-500" oninput="calcRevenue()">
+                                                <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                                                    <span class="text-slate-400 text-xs">/h</span>
+                                                </div>
+                                            </div>
+                                            <input type="range" id="hourly-rate-slider" min="1000" max="30000" step="500" value="5000" class="w-full mt-2 accent-blue-600" oninput="syncSlider('hourly-rate', this.value)">
+                                        </div>
+                                        <div>
+                                            <label class="block text-xs font-bold text-slate-600 mb-1">AIで削減できる月間時間</label>
+                                            <div class="relative rounded-md shadow-sm">
+                                                <input type="number" id="saved-hours" value="15" min="0" max="150" step="1" class="block w-full pr-12 py-2 text-sm border border-slate-300 rounded-md focus:ring-blue-500 focus:border-blue-500" oninput="calcRevenue()">
+                                                <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                                                    <span class="text-slate-400 text-xs">時間/月</span>
+                                                </div>
+                                            </div>
+                                            <input type="range" id="saved-hours-slider" min="0" max="80" step="1" value="15" class="w-full mt-2 accent-blue-600" oninput="syncSlider('saved-hours', this.value)">
+                                        </div>
+                                    </div>
+                                    <div class="text-right text-xs text-slate-500">
+                                        月間削減価値：<span class="font-bold text-navy-700" id="val-time-reduction">¥0</span>
+                                    </div>
+                                </div>
 
-<script>
-(function() {
+                                <!-- 2. 既存売上アップ効果 -->
+                                <div class="bg-slate-50 p-5 rounded-xl border border-slate-200 space-y-4">
+                                    <div class="flex items-center gap-2 text-navy-700 border-b border-slate-200 pb-2">
+                                        <span class="bg-blue-100 text-blue-700 w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold">2</span>
+                                        <h3 class="font-bold text-sm sm:text-base">空いた時間で増やす既存サービス・顧問数</h3>
+                                    </div>
+                                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                        <div>
+                                            <label class="block text-xs font-bold text-slate-600 mb-1">既存サービス/顧問契約の月額単価</label>
+                                            <div class="relative rounded-md shadow-sm">
+                                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                                    <span class="text-slate-400 text-xs">¥</span>
+                                                </div>
+                                                <input type="number" id="client-price" value="100000" min="10000" max="1000000" step="10000" class="block w-full pl-8 pr-12 py-2 text-sm border border-slate-300 rounded-md focus:ring-blue-500 focus:border-blue-500" oninput="calcRevenue()">
+                                                <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                                                    <span class="text-slate-400 text-xs">/月</span>
+                                                </div>
+                                            </div>
+                                            <input type="range" id="client-price-slider" min="10000" max="500000" step="10000" value="100000" class="w-full mt-2 accent-blue-600" oninput="syncSlider('client-price', this.value)">
+                                        </div>
+                                        <div>
+                                            <label class="block text-xs font-bold text-slate-600 mb-1">追加獲得可能な月間件数</label>
+                                            <div class="relative rounded-md shadow-sm">
+                                                <input type="number" id="client-count" value="1" min="0" max="10" step="1" class="block w-full pr-12 py-2 text-sm border border-slate-300 rounded-md focus:ring-blue-500 focus:border-blue-500" oninput="calcRevenue()">
+                                                <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                                                    <span class="text-slate-400 text-xs">件</span>
+                                                </div>
+                                            </div>
+                                            <input type="range" id="client-count-slider" min="0" max="10" step="1" value="1" class="w-full mt-2 accent-blue-600" oninput="syncSlider('client-count', this.value)">
+                                        </div>
+                                    </div>
+                                    <div class="text-right text-xs text-slate-500">
+                                        既存売上増加価値：<span class="font-bold text-navy-700" id="val-client-increase">¥0</span>
+                                    </div>
+                                </div>
 
-// ========== データ定義 ==========
-var AI_ITEMS = [
-  {id:'understanding', title:'経営者のAI理解度', desc:'AIを知っているか、自ら使っているか',
-   labels:['まったく知らない','話は聞いたことがある','試したことがある','定期的に使っている','自ら推進している']},
-  {id:'usage', title:'社員のAI利用率', desc:'実際にAIを業務で使っている社員の割合',
-   labels:['誰も使っていない','1〜2名が個人で試用','数名が不定期に使用','半数以上が使用中','ほぼ全員が日常的に使用']},
-  {id:'workflow', title:'業務へのAI組み込み', desc:'日常業務の中でAIが活躍しているか',
-   labels:['未使用','特定の人が試している','特定業務で試験導入','複数業務で活用中','主要業務に本格組み込み']},
-  {id:'rules', title:'社内ルール・ガイドライン', desc:'AI利用の社内ルールがあるか',
-   labels:['まったくない','口頭で注意している','簡単なメモがある','文書化されている','運用・教育まで実施']},
-  {id:'leader', title:'AI推進担当者', desc:'社内でAIを引っ張るキーパーソンがいるか',
-   labels:['いない','いそうな人はいる','兼任で取り組んでいる','専任に近い形で動いている','専任リーダーが活動中']},
-  {id:'data', title:'データ整備状況', desc:'業務データが整理・デジタル化されているか',
-   labels:['紙・バラバラ','一部デジタル化','半分以上デジタル化','ほぼデジタル化済み','AI連携できる状態']},
-  {id:'training', title:'AI教育・研修体制', desc:'社員へのAI教育が行われているか',
-   labels:['なし','自己学習に任せている','情報共有を時々している','定期的に勉強会あり','体系的な研修制度あり']},
-  {id:'security', title:'セキュリティ意識', desc:'AI利用時の情報管理ルールがあるか',
-   labels:['意識なし','なんとなく気をつけている','基本ルールがある','ガイドライン策定済み','定期的に教育・確認実施']},
-  {id:'customer', title:'顧客対応へのAI活用', desc:'問い合わせ対応・接客・提案にAIを使っているか',
-   labels:['なし','メール文章生成で試用','返信テンプレート等で活用','提案書・FAQ等に活用','接客・問合せ対応に本格活用']},
-  {id:'marketing', title:'マーケティングへのAI活用', desc:'集客・SNS・広告にAIを使っているか',
-   labels:['なし','SNS投稿等で試用','定期的に文章生成で活用','LP・広告に活用中','集客全体にAI戦略を組み込み']}
-];
+                                <!-- 3. 新規売上 -->
+                                <div class="bg-slate-50 p-5 rounded-xl border border-slate-200 space-y-4">
+                                    <div class="flex items-center gap-2 text-navy-700 border-b border-slate-200 pb-2">
+                                        <span class="bg-blue-100 text-blue-700 w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold">3</span>
+                                        <h3 class="font-bold text-sm sm:text-base">「AI伴走（新サービス・研修）」での新規開拓</h3>
+                                    </div>
+                                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                        <div>
+                                            <label class="block text-xs font-bold text-slate-600 mb-1">AI新規サービス/研修の想定単価</label>
+                                            <div class="relative rounded-md shadow-sm">
+                                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                                    <span class="text-slate-400 text-xs">¥</span>
+                                                </div>
+                                                <input type="number" id="new-service-price" value="300000" min="10000" max="3000000" step="10000" class="block w-full pl-8 pr-12 py-2 text-sm border border-slate-300 rounded-md focus:ring-blue-500 focus:border-blue-500" oninput="calcRevenue()">
+                                            </div>
+                                            <input type="range" id="new-service-price-slider" min="50000" max="1500000" step="50000" value="300000" class="w-full mt-2 accent-blue-600" oninput="syncSlider('new-service-price', this.value)">
+                                        </div>
+                                        <div>
+                                            <label class="block text-xs font-bold text-slate-600 mb-1">月間獲得見込み件数</label>
+                                            <div class="relative rounded-md shadow-sm">
+                                                <input type="number" id="new-service-count" value="1" min="0" max="20" step="1" class="block w-full pr-12 py-2 text-sm border border-slate-300 rounded-md focus:ring-blue-500 focus:border-blue-500" oninput="calcRevenue()">
+                                                <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                                                    <span class="text-slate-400 text-xs">件</span>
+                                                </div>
+                                            </div>
+                                            <input type="range" id="new-service-count-slider" min="0" max="10" step="1" value="1" class="w-full mt-2 accent-blue-600" oninput="syncSlider('new-service-count', this.value)">
+                                        </div>
+                                    </div>
+                                    <div class="text-right text-xs text-slate-500">
+                                        AI新サービス価値：<span class="font-bold text-navy-700" id="val-new-service">¥0</span>
+                                    </div>
+                                </div>
 
-var HUMAN_ITEMS = [
-  {id:'selflearn',   title:'自ら学ぼうとする姿勢',   desc:'AIツールを自分で調べて試せる社員がいるか'},
-  {id:'sharing',     title:'社内での情報共有',       desc:'AI活用の成果・失敗を社内でシェアしているか'},
-  {id:'trial',       title:'新しいことへの挑戦',     desc:'失敗を恐れず試してみる社風があるか'},
-  {id:'leadership',  title:'推進リーダーの存在',     desc:'この人が引っ張ってくれそうという社員が思い浮かぶか'},
-  {id:'output',      title:'成果の文章化・見える化', desc:'やったことを記録・マニュアル化できているか'},
-  {id:'improvement', title:'改善提案の文化',         desc:'業務改善のアイデアを言い出せる雰囲気があるか'},
-  {id:'external',    title:'外部情報の収集',         desc:'勉強会参加や情報収集に積極的な社員がいるか'},
-  {id:'vision',      title:'経営者のAIビジョン',     desc:'AIでこうしたいというビジョンを語れるか'}
-];
+                            </div>
 
-var orgScores = {};
-var humanScores = {};
-var radarChart = null;
+                            <!-- 計算結果表示エリア（右側5カラム） -->
+                            <div class="lg:col-span-5 flex flex-col justify-between">
+                                <div class="bg-gradient-to-br from-navy-800 to-navy-900 text-white rounded-2xl p-6 shadow-lg border border-navy-700 h-full flex flex-col justify-between space-y-6">
+                                    <div>
+                                        <h3 class="text-lg font-bold text-blue-300 border-b border-navy-700 pb-3 mb-4 flex items-center gap-2">
+                                            <i class="fa-solid fa-chart-line"></i> AI導入の収益予測
+                                        </h3>
+                                        
+                                        <!-- 月間収益 -->
+                                        <div class="mb-4">
+                                            <span class="text-xs text-slate-400 font-bold tracking-wider uppercase block">月間 収益増加ポテンシャル</span>
+                                            <div class="text-3xl sm:text-4xl font-black text-amber-400 mt-1" id="monthly-total">¥475,000</div>
+                                        </div>
 
-// ========== 画面切替 ==========
-function goTo(n) {
-  document.querySelectorAll('.screen').forEach(function(s) { s.classList.remove('active'); });
-  document.getElementById('screen' + n).classList.add('active');
-  window.scrollTo({top: 0, behavior: 'smooth'});
-}
+                                        <!-- 年間収益 -->
+                                        <div class="mb-6 p-4 bg-navy-800/60 rounded-xl border border-blue-500/20">
+                                            <span class="text-xs text-slate-400 font-bold block">年間 収益増加ポテンシャル</span>
+                                            <div class="text-4xl sm:text-5xl font-black text-amber-500 mt-1" id="yearly-total">¥5,700,000</div>
+                                        </div>
 
-// ========== モーダル ==========
-function openModal(id) {
-  document.getElementById(id).classList.add('open');
-  document.body.style.overflow = 'hidden';
-}
-function closeModal(id) {
-  document.getElementById(id).classList.remove('open');
-  document.body.style.overflow = '';
-}
+                                        <!-- 視覚的内訳比率バー -->
+                                        <div>
+                                            <div class="flex justify-between text-xs text-slate-400 font-bold mb-1">
+                                                <span>内訳比率</span>
+                                            </div>
+                                            <div class="h-4 bg-slate-800 rounded-full flex overflow-hidden shadow-inner">
+                                                <div id="ratio-time" class="bg-blue-500 h-full transition-all duration-300" style="width: 15%"></div>
+                                                <div id="ratio-client" class="bg-emerald-500 h-full transition-all duration-300" style="width: 25%"></div>
+                                                <div id="ratio-new" class="bg-amber-500 h-full transition-all duration-300" style="width: 60%"></div>
+                                            </div>
+                                            <div class="flex flex-wrap gap-x-4 gap-y-1 mt-3 text-[10px] text-slate-400">
+                                                <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 bg-blue-500 rounded-sm"></span>時間削減</span>
+                                                <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 bg-emerald-500 rounded-sm"></span>既存顧客増</span>
+                                                <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 bg-amber-500 rounded-sm"></span>AI伴走新サービス</span>
+                                            </div>
+                                        </div>
+                                    </div>
 
-// ========== フォーム生成 ==========
-function buildAiItems() {
-  var wrap = document.getElementById('aiItems');
-  wrap.innerHTML = '';
-  AI_ITEMS.forEach(function(item, i) {
-    var div = document.createElement('div');
-    div.className = 'ai-item';
-    div.id = 'aiItem' + i;
-    var radios = '<div class="radio-scale">';
-    for (var v = 1; v <= 5; v++) {
-      radios += '<label>'
-        + '<input type="radio" name="ai_' + item.id + '" value="' + v + '">'
-        + '<div class="radio-btn"><span class="radio-num">' + v + '</span><span>' + item.labels[v-1] + '</span></div>'
-        + '</label>';
-    }
-    radios += '</div>';
-    div.innerHTML = '<div class="ai-item-header">'
-      + '<div class="ai-item-num">' + (i+1) + '</div>'
-      + '<div><div class="ai-item-title">' + item.title + '</div>'
-      + '<div class="ai-item-desc">' + item.desc + '</div></div>'
-      + '</div>' + radios;
-    wrap.appendChild(div);
-  });
-  // ラジオ変更でハイライト
-  wrap.addEventListener('change', function(e) {
-    if (e.target && e.target.type === 'radio' && e.target.name.indexOf('ai_') === 0) {
-      var name = e.target.name.replace('ai_', '');
-      AI_ITEMS.forEach(function(item, i) {
-        if (item.id === name) document.getElementById('aiItem' + i).classList.add('done');
-      });
-    }
-  });
-}
+                                    <!-- サクセス事例（原稿の成果から抜粋） -->
+                                    <div class="bg-navy-800/80 p-4 rounded-xl border border-slate-700 text-xs space-y-3">
+                                        <div class="font-bold text-amber-400 flex items-center gap-1.5">
+                                            <i class="fa-solid fa-trophy"></i>
+                                            <span>同業の先生の成功事例：</span>
+                                        </div>
+                                        <blockquote class="italic text-slate-300">
+                                            「採用×AI伴走サービスを設計し、3ヶ月で月額15万円と月額20万円の年間顧問契約を獲得。合計 462 万円の受注に繋がりました！」 (コンサルタント 斎藤ゆめさん)
+                                        </blockquote>
+                                    </div>
 
-function buildHumanItems() {
-  var wrap = document.getElementById('humanItems');
-  wrap.innerHTML = '';
-  var hl = ['まったくない','ほとんどない','少しある','かなりある','十分ある'];
-  HUMAN_ITEMS.forEach(function(item, i) {
-    var div = document.createElement('div');
-    div.className = 'human-item';
-    var radios = '<div class="radio-scale">';
-    for (var v = 1; v <= 5; v++) {
-      radios += '<label>'
-        + '<input type="radio" name="h_' + item.id + '" value="' + v + '">'
-        + '<div class="radio-btn"><span class="radio-num">' + v + '</span><span>' + hl[v-1] + '</span></div>'
-        + '</label>';
-    }
-    radios += '</div>';
-    div.innerHTML = '<div class="human-item-title"><div class="human-item-num">' + (i+1) + '</div>' + item.title + '</div>'
-      + '<div class="human-item-desc">' + item.desc + '</div>' + radios;
-    wrap.appendChild(div);
-  });
-}
+                                    <!-- コンバージョンCTA -->
+                                    <button onclick="switchTab('seminar')" class="w-full bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-bold py-3.5 px-4 rounded-xl shadow-lg transition-all text-sm flex items-center justify-center gap-2">
+                                        <i class="fa-solid fa-paper-plane"></i>
+                                        <span>この予測を現実にする方法を学ぶ（無料）</span>
+                                    </button>
+                                </div>
+                            </div>
 
-// ========== STEP1バリデーション ==========
-function step1Next() {
-  var name = document.getElementById('companyName').value.trim();
-  var ind  = document.getElementById('industry').value;
-  var emp  = document.getElementById('employees').value;
-  if (!name || !ind || !emp) { alert('会社名・業種・従業員数は必ずご入力ください。'); return; }
-  goTo(2);
-}
+                        </div>
+                    </div>
+                </div>
+            </section>
 
-// ========== デモデータ ==========
-var DEMO = {
-  companyName: '\u682a\u5f0f\u4f1a\u793e\u3055\u304f\u3089\u5546\u4e8b',
-  industry: '\u98f2\u98df\u696d\u30fb\u98df\u54c1',
-  employees: '6\uff5e10\u540d',
-  business: '\u5730\u57df\u5bc6\u7740\u578b\u306e\u5b9a\u98df\u5c4b\u30fb\u4ed5\u51fa\u3057\u5f01\u5f53\u306e\u88fd\u9020\u8ca9\u58f2',
-  challenge: '\u65b0\u898f\u306e\u304a\u5ba2\u69d8\u304c\u5897\u3048\u306a\u3044\u3002SNS\u3092\u3084\u308a\u305f\u3044\u304c\u6295\u7a3f\u3059\u308b\u6642\u9593\u304c\u306a\u3044\u3002\u30b9\u30bf\u30c3\u30d5\u306e\u63a1\u7528\u3082\u56f0\u3063\u3066\u3044\u308b\u3002',
-  t1: '\u3044\u3064\u6765\u3066\u3082\u6e29\u304b\u304f\u3066\u3001\u307b\u3063\u3068\u3059\u308b\u3068\u3088\u304f\u8a00\u308f\u308c\u307e\u3059',
-  t2: '20\u5e74\u4ee5\u4e0a\u5730\u5143\u3067\u7d9a\u3051\u3066\u304d\u305f\u4fe1\u983c\u611f\u3068\u6bce\u671d\u4ed5\u5165\u308c\u308b\u65b0\u9bae\u306a\u98df\u6750\u3078\u306e\u3053\u3060\u308f\u308a',
-  t3: '\u304a\u5ba2\u69d8\u306b\u611f\u8b1d\u3055\u308c\u308b\u4ed5\u4e8b\u3060\u304b\u3089\u8aa4\u308a\u304c\u3042\u308b\u3068\u8a00\u3063\u3066\u304f\u308c\u308b\u30b9\u30bf\u30c3\u30d5\u304c\u3044\u307e\u3059',
-  t4: '\u663c\u98df\u306e\u5e38\u9023\u3055\u3093\u304c\u591a\u304f10\u5e74\u4ee5\u4e0a\u901a\u3063\u3066\u304f\u308c\u3066\u3044\u308b\u65b9\u304c\u6570\u5341\u540d\u3044\u307e\u3059',
-  t5: '\u3042\u306e\u5e97\u306f\u9593\u9055\u3044\u306a\u3044\u3068\u77e5\u4eba\u306b\u6559\u3048\u3066\u304f\u308c\u308b\u304a\u5ba2\u69d8\u304b\u3089\u65b0\u3057\u3044\u304a\u5ba2\u69d8\u304c\u6765\u308b\u3053\u3068\u304c\u591a\u3044',
-  t6: '\u3053\u306e\u5730\u57df\u306e\u304a\u5e74\u5bc4\u308a\u3084\u663c\u98df\u3092\u5916\u3067\u98df\u3079\u308b\u30b5\u30e9\u30ea\u30fc\u30de\u30f3\u306e\u65b9\u3005'
-};
-var DEMO_AI = {understanding:2, usage:1, workflow:1, rules:1, leader:1, data:2, training:1, security:2, customer:1, marketing:2};
-var DEMO_H  = {selflearn:2, sharing:1, trial:2, leadership:2, output:1, improvement:2, external:1, vision:2};
+            <!-- 機能3: SNS投稿AIプロンプトテンプレート -->
+            <section id="content-prompt" class="hidden space-y-6">
+                <div class="bg-white rounded-2xl shadow-md border border-slate-200 overflow-hidden">
+                    <div class="gradient-bg p-6 text-white">
+                        <span class="bg-blue-500/30 text-blue-300 text-xs px-2.5 py-1 rounded-full font-bold border border-blue-400/20">機能 3</span>
+                        <h2 class="text-xl sm:text-2xl font-bold mt-2 flex items-center gap-2">
+                            <i class="fa-solid fa-terminal text-blue-400"></i> SNS投稿AIプロンプトテンプレート
+                        </h2>
+                        <p class="text-xs sm:text-sm text-slate-300 mt-1">
+                            ChatGPTやClaude等にコピペして使用するだけで、士業・コンサルにふさわしい専門的なSNS投稿が生成されるプロンプトです。あなたのプロフィールを入力すると自動で置換されます。
+                        </p>
+                    </div>
 
-function loadDemoData() {
-  Object.keys(DEMO).forEach(function(k) {
-    var el = document.getElementById(k);
-    if (el) el.value = DEMO[k];
-  });
-  Object.keys(DEMO_AI).forEach(function(k) {
-    var el = document.querySelector('input[name="ai_' + k + '"][value="' + DEMO_AI[k] + '"]');
-    if (el) { el.checked = true; }
-  });
-  Object.keys(DEMO_H).forEach(function(k) {
-    var el = document.querySelector('input[name="h_' + k + '"][value="' + DEMO_H[k] + '"]');
-    if (el) { el.checked = true; }
-  });
-  closeModal('settingModal');
-  alert('デモデータを入力しました！\nSTEP1から順に確認し、最後の「診断結果を見る」を押してください。');
-  goTo(1);
-}
+                    <!-- 変数入力カスタマイズパネル -->
+                    <div class="bg-slate-50 p-6 border-b border-slate-200">
+                        <h3 class="text-sm font-bold text-navy-800 mb-3 flex items-center gap-2">
+                            <i class="fa-solid fa-sliders text-blue-600"></i>
+                            <span>プロンプトをあなた専用に自動カスタマイズ</span>
+                        </h3>
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                            <div>
+                                <label class="block text-xs font-bold text-slate-600 mb-1">あなたの専門職・資格</label>
+                                <input type="text" id="p-profession" value="行政書士" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-blue-500 focus:border-blue-500" placeholder="例：税理士, 経営コンサルタント" oninput="updatePrompts()">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-600 mb-1">ターゲット顧客</label>
+                                <input type="text" id="p-target" value="創業期のIT経営者" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-blue-500 focus:border-blue-500" placeholder="例：中小企業の社長, 起業家" oninput="updatePrompts()">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-600 mb-1">解決できる主な課題</label>
+                                <input type="text" id="p-problem" value="煩雑な資金調達や各種許認可手続き" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-blue-500 focus:border-blue-500" placeholder="例：補助金申請、採用のミスマッチ" oninput="updatePrompts()">
+                            </div>
+                        </div>
+                    </div>
 
-function confirmReset() {
-  if (!confirm('入力内容をすべてリセットして最初からやり直しますか？')) return;
-  ['companyName','industry','employees','business','challenge','t1','t2','t3','t4','t5','t6'].forEach(function(id) {
-    var el = document.getElementById(id);
-    if (el) el.value = '';
-  });
-  document.querySelectorAll('input[type="radio"]').forEach(function(r) { r.checked = false; });
-  document.querySelectorAll('.ai-item').forEach(function(el) { el.classList.remove('done'); });
-  orgScores = {}; humanScores = {};
-  closeModal('settingModal');
-  goTo(0);
-}
+                    <!-- プロンプトカード表示 -->
+                    <div class="p-6 space-y-8">
+                        
+                        <!-- テンプレート 1 -->
+                        <div class="border border-slate-200 rounded-xl overflow-hidden shadow-sm hover:shadow-md transition">
+                            <div class="bg-slate-100 px-4 py-3 border-b border-slate-200 flex justify-between items-center">
+                                <div class="flex items-center gap-2">
+                                    <span class="bg-navy-600 text-white text-[10px] font-bold px-2 py-0.5 rounded">型 1</span>
+                                    <h4 class="font-bold text-navy-800 text-sm sm:text-base">専門知識をお役立ち解説に変える型</h4>
+                                </div>
+                                <button onclick="copyPrompt('prompt-text-1')" class="bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold px-3 py-1.5 rounded flex items-center gap-1.5 transition">
+                                    <i class="fa-regular fa-copy"></i> <span>コピー</span>
+                                </button>
+                            </div>
+                            <div class="p-4 bg-slate-900 text-slate-100 font-mono text-xs sm:text-sm overflow-x-auto">
+                                <pre id="prompt-text-1" class="whitespace-pre-wrap leading-relaxed">Loading prompt...</pre>
+                            </div>
+                        </div>
 
-// ========== 診断計算 ==========
-function calcResult() {
-  var orgTotal = 0;
-  AI_ITEMS.forEach(function(item) {
-    var el = document.querySelector('input[name="ai_' + item.id + '"]:checked');
-    var v = el ? parseInt(el.value) : 1;
-    orgScores[item.id] = v;
-    orgTotal += v;
-  });
-  var humanTotal = 0;
-  HUMAN_ITEMS.forEach(function(item) {
-    var el = document.querySelector('input[name="h_' + item.id + '"]:checked');
-    var v = el ? parseInt(el.value) : 1;
-    humanScores[item.id] = v;
-    humanTotal += v;
-  });
+                        <!-- テンプレート 2 -->
+                        <div class="border border-slate-200 rounded-xl overflow-hidden shadow-sm hover:shadow-md transition">
+                            <div class="bg-slate-100 px-4 py-3 border-b border-slate-200 flex justify-between items-center">
+                                <div class="flex items-center gap-2">
+                                    <span class="bg-navy-600 text-white text-[10px] font-bold px-2 py-0.5 rounded">型 2</span>
+                                    <h4 class="font-bold text-navy-800 text-sm sm:text-base">経営者の悩みに寄り添う共感・ストーリー型</h4>
+                                </div>
+                                <button onclick="copyPrompt('prompt-text-2')" class="bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold px-3 py-1.5 rounded flex items-center gap-1.5 transition">
+                                    <i class="fa-regular fa-copy"></i> <span>コピー</span>
+                                </button>
+                            </div>
+                            <div class="p-4 bg-slate-900 text-slate-100 font-mono text-xs sm:text-sm overflow-x-auto">
+                                <pre id="prompt-text-2" class="whitespace-pre-wrap leading-relaxed">Loading prompt...</pre>
+                            </div>
+                        </div>
 
-  var level, levelName, levelDesc;
-  if (orgTotal <= 17)      { level=1; levelName='未導入';     levelDesc='AIはまだ導入されていません。今がはじめ時です。小さな一歩から始めましょう。'; }
-  else if (orgTotal <= 25) { level=2; levelName='個人利用';   levelDesc='一部の方がAIを個人的に使い始めています。次は組織全体に広げるフェーズです。'; }
-  else if (orgTotal <= 33) { level=3; levelName='チーム利用'; levelDesc='いくつかのチームでAIが活用されています。仕組み化と推進担当者の選定が鍵です。'; }
-  else if (orgTotal <= 41) { level=4; levelName='組織活用';   levelDesc='組織としてAI活用が進んでいます。次はAIを経営戦略に組み込む段階です。'; }
-  else                     { level=5; levelName='AI経営企業'; levelDesc='AIが経営の柱になっています。業界リーダーとして他社の模範になれます。'; }
+                        <!-- テンプレート 3 -->
+                        <div class="border border-slate-200 rounded-xl overflow-hidden shadow-sm hover:shadow-md transition">
+                            <div class="bg-slate-100 px-4 py-3 border-b border-slate-200 flex justify-between items-center">
+                                <div class="flex items-center gap-2">
+                                    <span class="bg-navy-600 text-white text-[10px] font-bold px-2 py-0.5 rounded">型 3</span>
+                                    <h4 class="font-bold text-navy-800 text-sm sm:text-base">セミナー・相談会への集客・案内型</h4>
+                                </div>
+                                <button onclick="copyPrompt('prompt-text-3')" class="bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold px-3 py-1.5 rounded flex items-center gap-1.5 transition">
+                                    <i class="fa-regular fa-copy"></i> <span>コピー</span>
+                                </button>
+                            </div>
+                            <div class="p-4 bg-slate-900 text-slate-100 font-mono text-xs sm:text-sm overflow-x-auto">
+                                <pre id="prompt-text-3" class="whitespace-pre-wrap leading-relaxed">Loading prompt...</pre>
+                            </div>
+                        </div>
 
-  document.getElementById('resLevelNum').textContent   = level;
-  document.getElementById('resLevelLabel').textContent = 'レベル' + level + '：' + levelName;
-  document.getElementById('resLevelDesc').textContent  = levelDesc;
-  document.getElementById('resOrgScore').textContent   = orgTotal + '/50';
-  document.getElementById('resHumanScore').textContent = humanTotal + '/40';
+                    </div>
+                </div>
+            </section>
 
-  var t1v = document.getElementById('t1').value || '';
-  var t2v = document.getElementById('t2').value || '';
-  var t5v = document.getElementById('t5').value || '';
-  document.getElementById('gem1').textContent = t1v ? t1v + 'という顧客からの信頼' : '（未記入）';
-  document.getElementById('gem2').textContent = t2v ? t2v + 'という競合優位性' : '（未記入）';
-  document.getElementById('gem3').textContent = t5v ? t5v + 'という口コミ力' : '（未記入）';
+            <!-- タブ4: AI伴走士とは？＆オンラインセミナー詳細 -->
+            <section id="content-seminar" class="hidden space-y-6">
+                
+                <!-- AI伴走士のビジョンカード -->
+                <div class="bg-gradient-to-br from-navy-800 to-navy-900 text-white rounded-2xl p-6 sm:p-8 shadow-xl border border-navy-700">
+                    <div class="max-w-3xl mx-auto space-y-6 text-center sm:text-left">
+                        <div class="inline-block bg-blue-500/20 border border-blue-400/30 text-blue-300 text-xs px-3 py-1 rounded-full font-bold">
+                            新コンセプト：「AI伴走士」というポジション戦略
+                        </div>
+                        <h2 class="text-2xl sm:text-4xl font-extrabold tracking-tight">
+                            AIを便利に使う側から、<br class="hidden sm:inline">
+                            顧客に活用を提案して<span class="text-amber-400">「成果を出せる先生」</span>へ。
+                        </h2>
+                        <p class="text-sm sm:text-base text-slate-300 leading-relaxed">
+                            ChatGPT、Gemini、Claudeなどの普及によって、士業やコンサルタントの「知識」そのものの価値は徐々に低下しています。これからのAI時代に選ばれ、高付加価値な報酬を獲得し続ける唯一の手段は、
+                            <strong>「AIを自分の業務で使うこと」に留まらず、「顧客にAI活用を伴走提案し、成果を出すこと」</strong>です。
+                        </p>
+                        <div class="border-t border-slate-700 pt-6 grid grid-cols-1 sm:grid-cols-3 gap-6 text-left">
+                            <div class="bg-navy-800 p-4 rounded-xl border border-slate-700">
+                                <div class="text-amber-400 font-bold text-lg">知識から「成果」へ</div>
+                                <div class="text-xs text-slate-400 mt-1">ただのアドバイザーではなく、AI技術を実務に落とし込んで顧客企業の生産性を向上。</div>
+                            </div>
+                            <div class="bg-navy-800 p-4 rounded-xl border border-slate-700">
+                                <div class="text-amber-400 font-bold text-lg">高単価顧問の獲得</div>
+                                <div class="text-xs text-slate-400 mt-1">「AI伴走サービス」という新規軸を提案し、月額15万〜20万円クラスの継続報酬を受注。</div>
+                            </div>
+                            <div class="bg-navy-800 p-4 rounded-xl border border-slate-700">
+                                <div class="text-amber-400 font-bold text-lg">完全なる差別化</div>
+                                <div class="text-xs text-slate-400 mt-1">「AIに代わられる士業」から「AIの力をフルに提供する伴走士」へと立ち位置をシフト。</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
 
-  renderIssues(orgTotal);
-  renderPlan(level);
-  renderHuman(humanTotal);
-  setTimeout(drawRadar, 100);
-  goTo(5);
-}
+                <!-- セミナー開催詳細と無料申し込み -->
+                <div class="bg-white rounded-2xl shadow-md border border-slate-200 overflow-hidden">
+                    <div class="p-6 sm:p-8">
+                        <div class="max-w-4xl mx-auto flex flex-col md:flex-row items-center gap-8">
+                            
+                            <!-- セミナー情報 (左側) -->
+                            <div class="flex-grow space-y-4 md:w-1/2">
+                                <span class="bg-amber-100 text-amber-800 text-xs px-2.5 py-1 rounded-full font-bold border border-amber-300">
+                                    無料オンラインセミナー（80分）
+                                </span>
+                                <h3 class="text-2xl font-black text-navy-800">
+                                    AI時代に“取り残されない先生”になる実践戦略
+                                </h3>
+                                <p class="text-sm text-slate-600 leading-relaxed">
+                                    ChatGPTやGeminiを触っているけれど、使いこなせていない...。そんな先生業ならではのAI活用法、AIを新商品にして収益に繋げるための設計思考を体系的に学べます。
+                                </p>
+                                
+                                <ul class="space-y-2.5 text-xs sm:text-sm text-slate-700">
+                                    <li class="flex items-center gap-2">
+                                        <i class="fa-solid fa-check-double text-emerald-500"></i>
+                                        <span>どの場面でどのAIを使うか「5領域」の使い分け軸</span>
+                                    </li>
+                                    <li class="flex items-center gap-2">
+                                        <i class="fa-solid fa-check-double text-emerald-500"></i>
+                                        <span>AIに思い通りの高精度回答を出させる「構造化プロンプトの型」</span>
+                                    </li>
+                                    <li class="flex items-center gap-2">
+                                        <i class="fa-solid fa-check-double text-emerald-500"></i>
+                                        <span>AIを活用した顧客支援モデル（AI伴走商品設計）</span>
+                                    </li>
+                                </ul>
 
-var ISSUE_MSG = {
-  understanding: '経営者がAIを知らないと社内全体が動きません。まず経営者自身が週1回使ってみることから始めましょう。',
-  usage:         '使っている社員が少ない状態です。小さな体験会から始めることが効果的です。',
-  workflow:      '議事録やメール作成などまず一つの業務をAI化することで効果を実感できます。',
-  rules:         'ルールがないと社員は怖くて使えません。一枚紙で明示するだけで変わります。',
-  leader:        '推進するリーダーがいません。AIに興味がある社員を1名選び権限を与えましょう。',
-  data:          'データが整っていないとAI活用は難しいです。まずデジタル化から始めましょう。',
-  training:      '月1回30分のAIシェア会を設けるだけで大きく変わります。',
-  security:      '個人情報はAIに入力しないなど基本ルールを作りましょう。',
-  customer:      '問い合わせ返信のテンプレート作成から試してみましょう。',
-  marketing:     'SNS投稿の文章生成から始めると効果が出やすいです。'
-};
+                                <div class="flex flex-col gap-2 p-4 bg-slate-50 rounded-xl border border-slate-200">
+                                    <div class="flex items-center justify-between text-xs text-slate-500">
+                                        <span>【開催形式】</span> <span class="font-bold text-navy-700">オンライン開催（顔出し不要・ミュート可）</span>
+                                    </div>
+                                    <div class="flex items-center justify-between text-xs text-slate-500">
+                                        <span>【参加費用】</span> <span class="font-bold text-emerald-600">通常 3,000円 → 今回特別無料</span>
+                                    </div>
+                                    <div class="flex items-center justify-between text-xs text-slate-500">
+                                        <span>【講師】</span> <span class="font-bold text-navy-700">五十嵐和也（AI伴走メソッド開発者）</span>
+                                    </div>
+                                </div>
+                            </div>
 
-function renderIssues(orgTotal) {
-  var issues = AI_ITEMS
-    .map(function(item) { return {id:item.id, title:item.title, score:orgScores[item.id]}; })
-    .filter(function(i) { return i.score <= 2; })
-    .sort(function(a,b) { return a.score - b.score; })
-    .slice(0, 3);
-  var wrap = document.getElementById('issueList');
-  wrap.innerHTML = '';
-  if (!issues.length) { wrap.innerHTML = '<p style="color:#2a6b4a;font-weight:700;">大きな課題は見当たりません。さらなるレベルアップを目指しましょう！</p>'; return; }
-  var cls = ['p1','p2','p3'], prio = ['第1位','第2位','第3位'];
-  issues.forEach(function(item, i) {
-    var d = document.createElement('div');
-    d.className = 'issue-card ' + cls[i];
-    d.innerHTML = '<div class="issue-priority">優先課題 ' + prio[i] + '</div>'
-      + '<div class="issue-title">' + item.title + '（スコア：' + item.score + '/5）</div>'
-      + '<div class="issue-detail">' + (ISSUE_MSG[item.id] || '') + '</div>';
-    wrap.appendChild(d);
-  });
-}
+                            <!-- 申し込み導線 (右側) -->
+                            <div class="w-full md:w-1/2 bg-slate-50 p-6 rounded-2xl border-2 border-dashed border-slate-300 flex flex-col justify-center text-center space-y-4">
+                                <i class="fa-regular fa-calendar-check text-5xl text-blue-600"></i>
+                                <div>
+                                    <h4 class="font-bold text-navy-800 text-lg">特典をすべて受け取って席を確保する</h4>
+                                    <p class="text-xs text-slate-500 mt-1">※定員に達し次第、予告なく締め切ります</p>
+                                </div>
+                                <div class="space-y-2">
+                                    <a href="#" onclick="alert('セミナーお申し込みフォームへ遷移（シミュレーション完了）')" class="block bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-extrabold py-3.5 px-4 rounded-xl shadow-md text-sm transition tracking-wider">
+                                        今すぐAI伴走戦略を学ぶ (無料)
+                                    </a>
+                                    <div class="text-[10px] text-slate-400 flex items-center justify-center gap-2">
+                                        <span><i class="fa-solid fa-shield-halved"></i> 個人情報は厳重に保護されます</span>
+                                    </div>
+                                </div>
+                            </div>
 
-var PLANS = {
-  low: [
-    {label:'最初の30日：AIを体験する', cls:'p30', actions:[
-      {icon:'💬', title:'ChatGPT / Claudeを毎日使ってみる', detail:'経営者が毎日1回AIに質問する習慣をつける。', who:'経営者', diff:'★☆☆', effect:'AI理解が深まる'},
-      {icon:'📝', title:'メール・文章をAIで作成', detail:'実際の業務文章をAIに作ってもらい時短効果を体感する。', who:'全員', diff:'★☆☆', effect:'30分/日の削減'}
-    ]},
-    {label:'31〜60日：業務に組み込む', cls:'p60', actions:[
-      {icon:'📋', title:'議事録をAIで自動要約', detail:'会議の内容をテキスト化してAIに要約・ToDoを作ってもらう。', who:'担当者', diff:'★★☆', effect:'作業を50%削減'},
-      {icon:'📣', title:'SNS投稿文をAIで作成', detail:'InstagramやブログをAIに下書きしてもらう。', who:'担当者', diff:'★☆☆', effect:'投稿頻度が上がる'}
-    ]},
-    {label:'61〜90日：仕組みにする', cls:'p90', actions:[
-      {icon:'📌', title:'AI利用ルールを1枚紙でまとめる', detail:'何をしていいか・してはいけないかをA4一枚で整理する。', who:'リーダー', diff:'★★☆', effect:'全員が安心して使える'},
-      {icon:'👑', title:'AI推進担当者を1名決める', detail:'「AIを最初に試す人」を正式に任命する。', who:'経営者', diff:'★★☆', effect:'社内浸透が加速する'}
-    ]}
-  ],
-  mid: [
-    {label:'最初の30日：成果を出す業務を決める', cls:'p30', actions:[
-      {icon:'🎯', title:'AI化する業務を3つ選ぶ', detail:'「これだけはAIで」という業務を明確に決め担当者を決める。', who:'リーダー', diff:'★★☆', effect:'ROIが見えやすくなる'},
-      {icon:'📝', title:'提案書テンプレートをAIで作成', detail:'定型文書をAIで自動生成できるプロセスを作る。', who:'営業担当', diff:'★★☆', effect:'作成時間を60%削減'}
-    ]},
-    {label:'31〜60日：チームに広げる', cls:'p60', actions:[
-      {icon:'📚', title:'社内AI活用マニュアルを作る', detail:'よく使う使い方をまとめた1〜2ページのガイドを作る。', who:'推進担当', diff:'★★☆', effect:'新人でもすぐ使える'},
-      {icon:'💬', title:'月1回のAI共有会を開催', detail:'成果と失敗を全員でシェアする場を作る。', who:'全員', diff:'★☆☆', effect:'ノウハウが蓄積される'}
-    ]},
-    {label:'61〜90日：組織に仕組みを作る', cls:'p90', actions:[
-      {icon:'🤖', title:'社内向けAIチャット窓口を検討', detail:'よくある質問に自動回答するDify等を試験導入する。', who:'推進担当', diff:'★★★', effect:'問い合わせ対応を削減'},
-      {icon:'📊', title:'AI導入成果を数字でレポート', detail:'何時間削減できたかを月次でまとめ経営会議で報告する。', who:'リーダー', diff:'★★☆', effect:'予算確保につながる'}
-    ]}
-  ],
-  high: [
-    {label:'最初の30日：AI戦略を経営に組み込む', cls:'p30', actions:[
-      {icon:'🗺', title:'1年間のAI活用ロードマップ策定', detail:'何をいつまでにAI化するか優先順位をつけた計画を作る。', who:'経営者', diff:'★★★', effect:'方向性が揃う'},
-      {icon:'📋', title:'AIガイドライン（正式版）の策定', detail:'情報セキュリティ・倫理・活用ルールを文書化する。', who:'推進担当', diff:'★★★', effect:'リスク管理ができる'}
-    ]},
-    {label:'31〜60日：AIを差別化に使う', cls:'p60', actions:[
-      {icon:'💡', title:'自社サービスにAIを組み込む', detail:'顧客向けサービスにAI機能を付加する方向性を検討する。', who:'経営者', diff:'★★★', effect:'他社との差別化'},
-      {icon:'📣', title:'AI活用事例を外部に発信', detail:'note・SNS・プレスリリースで事例発信する。', who:'マーケ担当', diff:'★★☆', effect:'採用・営業力が上がる'}
-    ]},
-    {label:'61〜90日：AI経営企業へ', cls:'p90', actions:[
-      {icon:'🤝', title:'社内専用AIアシスタントを構築', detail:'社内ナレッジをAIに学ばせ24時間相談できる環境を作る。', who:'推進チーム', diff:'★★★', effect:'ナレッジが資産になる'},
-      {icon:'🏆', title:'AI活用の表彰制度の導入', detail:'AI活用で成果を出した社員を評価する仕組みを作る。', who:'経営者', diff:'★★☆', effect:'社内文化として定着する'}
-    ]}
-  ]
-};
+                        </div>
+                    </div>
+                </div>
 
-function renderPlan(level) {
-  var key = level <= 2 ? 'low' : level <= 3 ? 'mid' : 'high';
-  var phases = PLANS[key];
-  var wrap = document.getElementById('planList');
-  wrap.innerHTML = '';
-  phases.forEach(function(phase) {
-    var d = document.createElement('div');
-    d.className = 'plan-phase';
-    var acts = '';
-    phase.actions.forEach(function(a) {
-      acts += '<div class="plan-action">'
-        + '<div class="plan-action-icon">' + a.icon + '</div>'
-        + '<div><div class="plan-action-title">' + a.title + '</div>'
-        + '<div class="plan-action-detail">' + a.detail + '</div>'
-        + '<div class="plan-tags">'
-        + '<span class="plan-tag">担当：' + a.who + '</span>'
-        + '<span class="plan-tag">難易度：' + a.diff + '</span>'
-        + '<span class="plan-tag">効果：' + a.effect + '</span>'
-        + '</div></div></div>';
-    });
-    d.innerHTML = '<div class="plan-header ' + phase.cls + '">' + phase.label + '</div>'
-      + '<div class="plan-body">' + acts + '</div>';
-    wrap.appendChild(d);
-  });
-}
+                <!-- 講師プロフィール -->
+                <div class="bg-white rounded-2xl shadow-md border border-slate-200 p-6 sm:p-8">
+                    <div class="flex flex-col md:flex-row gap-6 items-start">
+                        <div class="w-20 h-20 bg-navy-100 rounded-full flex items-center justify-center text-navy-700 font-black text-xl shrink-0 mx-auto md:mx-0">
+                            五十嵐
+                        </div>
+                        <div class="space-y-3 flex-grow text-center md:text-left">
+                            <div class="text-xs font-bold text-blue-600">AI伴走メソッド開発者</div>
+                            <h3 class="text-lg sm:text-xl font-bold text-navy-800">五十嵐和也（いがらし かずや）</h3>
+                            <p class="text-xs font-semibold text-slate-500">
+                                一般社団法人AI伴走士協会 代表理事 / 株式会社エクスウィルパートナーズ 代表取締役<br>
+                                中小企業診断士・MBA・システムアナリスト
+                            </p>
+                            <p class="text-xs sm:text-sm text-slate-600 leading-relaxed">
+                                先生業を1,000名超プロデュースした実績と、先生業特化型ビジネススクール「志師塾」の卒業生2,500名超の成果、元ITエンジニアの経験をもとに、先生業ならではのAI活用法を研究・体系化。「AI×伴走支援こそが、先生業の生き残る唯一の道」であると確信し、普及活動を行っている。
+                            </p>
+                        </div>
+                    </div>
+                </div>
 
-var HUMAN_TYPES = [
-  {max:15, type:'A', name:'タイプA：ゼロベース型', desc:'まずは経営者自身がAIを体験することが最初の一歩です。',
-   recs:[
-    {icon:'🎯', title:'経営者が先頭に立つ', detail:'週1回30分、ChatGPTを使って業務を試してみてください。'},
-    {icon:'📚', title:'まず1つのツールをマスター', detail:'ChatGPTかClaude、どちらか1つに絞って毎日使う習慣をつけましょう。'},
-    {icon:'🌱', title:'スタートは小さく', detail:'議事録の要約・メール文章の作成から始めると最短で成果を体感できます。'}
-  ]},
-  {max:23, type:'B', name:'タイプB：芽生え型', desc:'AIに関心を持つ社員がいます。その人材を推進リーダーに任命しましょう。',
-   recs:[
-    {icon:'👑', title:'AI推進リーダーを1名決める', detail:'「やってみたい」という人を1名選んで権限と時間を与えてください。'},
-    {icon:'🔧', title:'業務1つをAI化する', detail:'「この仕事だけはAIで」という業務を1つ決めて3ヶ月続けましょう。'},
-    {icon:'📣', title:'社内で小さな発表会を', detail:'AI活用の成果を月1回5分でいいのでシェアする場を作りましょう。'}
-  ]},
-  {max:31, type:'C', name:'タイプC：成長型', desc:'社内にAI活用の文化が育ちつつあります。仕組み化が次のテーマです。',
-   recs:[
-    {icon:'📋', title:'AI活用ルールブックを作る', detail:'何をしていいか、してはいけないかを明文化すると全員が動きやすくなります。'},
-    {icon:'🤝', title:'部署横断チームを作る', detail:'各部署から1名選びAI推進チームを結成しましょう。'},
-    {icon:'📈', title:'成果を数字で見える化', detail:'「何時間削減できたか」を記録することで経営判断の材料になります。'}
-  ]},
-  {max:40, type:'D', name:'タイプD：自走型', desc:'社内にAIリーダーが存在し、自走できる体制が整っています。',
-   recs:[
-    {icon:'🚀', title:'社内専用AIの構築へ', detail:'社内ナレッジを学習させた専用AIチャットボットを構築する段階です。'},
-    {icon:'🏆', title:'業界への発信', detail:'御社の事例を発信することで採用・ブランディング・営業に活用できます。'},
-    {icon:'🔮', title:'AI経営戦略の策定', detail:'1年後・3年後のAI活用ビジョンを経営計画に組み込みましょう。'}
-  ]}
-];
+            </section>
 
-function renderHuman(total) {
-  var ht = HUMAN_TYPES[0];
-  for (var i = 0; i < HUMAN_TYPES.length; i++) { if (total <= HUMAN_TYPES[i].max) { ht = HUMAN_TYPES[i]; break; } }
-  var recHTML = ht.recs.map(function(r) {
-    return '<div class="rec-box"><div class="rec-icon">' + r.icon + '</div>'
-      + '<div><div class="rec-title">' + r.title + '</div>'
-      + '<div class="rec-detail">' + r.detail + '</div></div></div>';
-  }).join('');
-  document.getElementById('humanResultWrap').innerHTML =
-    '<div class="human-result">'
-    + '<div class="human-type-label">AI人材タイプ</div>'
-    + '<div class="human-type-name">' + ht.name + '</div>'
-    + '<div class="human-type-desc">' + ht.desc + '</div>'
-    + '</div>'
-    + '<div class="card" style="margin-bottom:18px;">'
-    + '<span class="step-badge">AI人材レポート</span>'
-    + '<h2 style="margin-bottom:14px;">おすすめのアクション</h2>'
-    + recHTML + '</div>';
-}
+        </div>
 
-// ========== レーダーチャート ==========
-function drawRadar() {
-  var labels = AI_ITEMS.map(function(i) { return i.title; });
-  var data   = AI_ITEMS.map(function(i) { return orgScores[i.id] || 1; });
-  var ctx = document.getElementById('radarChart').getContext('2d');
-  if (radarChart) radarChart.destroy();
-  radarChart = new Chart(ctx, {
-    type: 'radar',
-    data: { labels: labels, datasets: [{
-      label: 'AI組織化スコア', data: data,
-      backgroundColor: 'rgba(34,54,112,0.15)',
-      borderColor: 'rgba(34,54,112,0.8)', borderWidth: 2,
-      pointBackgroundColor: '#D0A900', pointRadius: 5
-    }]},
-    options: { responsive: true,
-      scales: { r: { min:0, max:5, ticks:{stepSize:1,font:{size:10}},
-        pointLabels:{font:{size:10},color:'#223670'},
-        grid:{color:'rgba(34,54,112,0.1)'}, angleLines:{color:'rgba(34,54,112,0.1)'} }},
-      plugins: { legend: { display: false } }
-    }
-  });
-}
+    </main>
 
-// ========== コピー ==========
-function copyResult() {
-  var now = new Date();
-  var days = ['日','月','火','水','木','金','土'];
-  var ds = now.getFullYear() + '年' + (now.getMonth()+1) + '月' + now.getDate() + '日('
-    + days[now.getDay()] + ') ' + now.getHours() + '時' + String(now.getMinutes()).padStart(2,'0') + '分';
+    <!-- フッター -->
+    <footer class="bg-navy-900 text-white border-t border-navy-800 py-8 mt-12">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex flex-col sm:flex-row justify-between items-center gap-4 text-center sm:text-left">
+                <div>
+                    <h3 class="text-sm font-bold text-blue-400">一般社団法人AI伴走士協会 × 志師塾</h3>
+                    <p class="text-[11px] text-slate-400 mt-1">Copyright &copy; 2026 志師塾 All Rights Reserved.</p>
+                </div>
+                <div class="flex flex-wrap justify-center gap-4 text-xs text-slate-400">
+                    <a href="#" class="hover:text-blue-300">プライバシーポリシー</a>
+                    <a href="#" class="hover:text-blue-300">特定商取引法に基づく表記</a>
+                    <a href="#" class="hover:text-blue-300">会社概要</a>
+                </div>
+            </div>
+        </div>
+    </footer>
 
-  var get = function(id) { return document.getElementById(id) ? document.getElementById(id).value || '（未入力）' : '（未入力）'; };
-  var getT = function(id) { return document.getElementById(id) ? document.getElementById(id).textContent : ''; };
+    <!-- JavaScript ロジック -->
+    <script>
+        // 1. 20業務チェックリストのデータ定義
+        const checklistData = [
+            { id: 1, text: "契約書や利用規約のドラフト自動生成", category: "a" },
+            { id: 2, text: "顧客向けのお礼や連絡メールの一次作成", category: "a" },
+            { id: 3, text: "複雑な法改正情報のポイント要約・分析", category: "a" },
+            { id: 4, text: "社内マニュアルや業務プロシージャの自動作成", category: "a" },
+            { id: 5, text: "各種行政書面や申請書類の下書き作成", category: "a" },
+            { id: 6, text: "セミナーや講演会のスライド原稿の骨子構築", category: "a" },
+            { id: 7, text: "顧客対応用のQ&A集・FAQコンテンツ作成", category: "a" },
 
-  var issueEls = document.querySelectorAll('#issueList .issue-title');
-  var issues = Array.from(issueEls).map(function(el) { return '・' + el.textContent; }).join('\n') || '・特になし';
+            { id: 8, text: "顧客企業の経営課題ヒアリングシート作成", category: "b" },
+            { id: 9, text: "新規事業やマーケティングアイデアの壁打ち・ブレスト", category: "b" },
+            { id: 10, text: "財務データからの問題点抽出と改善策コメント作成", category: "b" },
+            { id: 11, text: "補助金・助成金の公募要領から該当要件を自動判定", category: "b" },
+            { id: 12, text: "顧客企業向けのカスタマイズ社内研修カリキュラムの企画", category: "b" },
+            { id: 13, text: "競合調査（競合他社の強み・弱みの自動分析）", category: "b" },
+            { id: 14, text: "顧客向けの事業計画書・資金調達シナリオのブラッシュアップ", category: "b" },
 
-  var planLines = [];
-  document.querySelectorAll('#planList .plan-phase').forEach(function(ph) {
-    planLines.push(ph.querySelector('.plan-header').textContent.trim());
-    ph.querySelectorAll('.plan-action-title').forEach(function(el) { planLines.push('  ・' + el.textContent); });
-  });
+            { id: 15, text: "ホームページやブログ記事の下書き執筆", category: "c" },
+            { id: 16, text: "定期的な顧客向けメルマガのコンテンツ作成", category: "c" },
+            { id: 17, text: "SNS（X、Facebook）用の目を引く投稿案作成", category: "c" },
+            { id: 18, text: "LP（ランディングページ）のキャッチコピー・ヘッドライン案作成", category: "c" },
+            { id: 19, text: "セミナー集客用チラシ・DMのライティング", category: "c" },
+            { id: 20, text: "業界トレンドニュースの要約とSNSシェア用テキスト作成", category: "c" }
+        ];
 
-  var htEl = document.querySelector('.human-type-name');
-  var ht = htEl ? htEl.textContent : '（未診断）';
+        // プロンプトテンプレートの生テキスト定義 (変数置換前)
+        const promptTemplates = {
+            1: `【役割】
+あなたは一流のビジネスプロデューサーであり、人気のSNSマーケターです。
+私の専門知識を、ターゲット層に向けてわかりやすく、かつスクロールする手を止めるような魅力的なSNS投稿（X / Facebook）に変換してください。
 
-  var sep = '================================';
-  var text = [
-    sep, '[AI組織化診断 結果レポート]', '診断日時：' + ds, sep, '',
-    '【会社情報】',
-    '会社名　：' + get('companyName'),
-    '業種　　：' + get('industry'),
-    '従業員数：' + get('employees'),
-    '経営課題：' + get('challenge'), '',
-    sep, '【診断結果】', sep, '',
-    'AI活用レベル　：' + getT('resLevelLabel'),
-    'AI組織化スコア：' + getT('resOrgScore'),
-    'AI人材スコア　：' + getT('resHumanScore'),
-    'AI人材タイプ　：' + ht, '',
-    '【会社の宝（強み）】',
-    '01. ' + getT('gem1'),
-    '02. ' + getT('gem2'),
-    '03. ' + getT('gem3'), '',
-    '【優先して改善すべき課題】', issues, '',
-    '【90日アクションプラン】',
-    planLines.join('\n'), '',
-    sep,
-    'このレポートはAI組織化診断（by Smile Plus Consulting）にて生成されました。',
-    'https://smileplusctg.com', sep
-  ].join('\n');
+【前提情報】
+・私の専門職/資格： {{PROFESSION}}
+・私のターゲット層： {{TARGET}}
+・解決できる顧客の課題： {{PROBLEM}}
 
-  if (navigator.clipboard && navigator.clipboard.writeText) {
-    navigator.clipboard.writeText(text).then(function() {
-      showCopyDone();
-    }).catch(function() { fallbackCopy(text); });
-  } else { fallbackCopy(text); }
-}
+【発信テーマ】
+「実は見落としがちな、一番最初に対策すべきポイント」について
 
-function fallbackCopy(text) {
-  var ta = document.createElement('textarea');
-  ta.value = text;
-  ta.style.position = 'fixed'; ta.style.opacity = '0';
-  document.body.appendChild(ta); ta.focus(); ta.select();
-  try { document.execCommand('copy'); showCopyDone(); } catch(e) { alert('コピーできませんでした。お手数ですが手動でコピーしてください。'); }
-  document.body.removeChild(ta);
-}
+【執筆のルール】
+1. 専門用語は一切使わず、中学生でも理解できる表現にすること。
+2. 冒頭の1行目でターゲットの「痛みを突く問いかけ」を行い、注目を集める。
+3. 解決策を3つのシンプルなステップで提示する。
+4. 最後に「同じように悩んでいる方は、プロフィールのリンクをクリック」などのCTAで締めくくる。
+5. X(140字以内)とFacebook(長文)の2つのバージョンを出力してください。`,
 
-function showCopyDone() {
-  var toast = document.getElementById('copyToast');
-  var btn   = document.getElementById('copyBtn');
-  if (toast) toast.style.display = 'block';
-  if (btn)   { btn.textContent = 'コピー済み！'; btn.style.background = 'linear-gradient(135deg,#2a6b4a,#3a9b6a)'; }
-  setTimeout(function() {
-    if (toast) toast.style.display = 'none';
-    if (btn)   { btn.textContent = '診断結果をコピーする'; btn.style.background = ''; }
-  }, 4000);
-}
+            2: `【役割】
+あなたはストーリーテリングのプロフェッショナルです。
+ターゲット層の課題に寄り添い、信頼関係を築くための「共感ストーリー型」のSNS投稿（1000文字程度）を作成してください。
 
-// ========== イベントバインド ==========
-document.addEventListener('DOMContentLoaded', function() {
-  buildAiItems();
-  buildHumanItems();
+【前提情報】
+・私の専門職/資格： {{PROFESSION}}
+・私のターゲット層： {{TARGET}}
+・解決できる顧客の課題： {{PROBLEM}}
 
-  // ヘッダー
-  document.getElementById('btnHow').addEventListener('click', function() { openModal('howModal'); });
-  document.getElementById('btnSet').addEventListener('click', function() { openModal('settingModal'); });
+【ストーリーの構成案】
+1. 【挫折の共有】ターゲットと同じように、{{PROBLEM}}で夜も眠れないほど悩んでいたある経営者のエピソード
+2. 【転換点】偶然の出会いや発見、あるいは私の伴走によって、何が問題の本質だったかに気づく瞬間
+3. 【結果】現在どのように劇的に改善されたか
+4. 【学び】単に「大変」で終わらせず、専門家としての気付きを1行で要約
+5. 【招待】「今のやり方に確信がない方は、お気軽にDMでご相談ください」
 
-  // モーダル閉じる
-  document.getElementById('closeHow').addEventListener('click', function() { closeModal('howModal'); });
-  document.getElementById('closeSet').addEventListener('click', function() { closeModal('settingModal'); });
-  document.getElementById('howModal').addEventListener('click', function(e) { if (e.target === this) closeModal('howModal'); });
-  document.getElementById('settingModal').addEventListener('click', function(e) { if (e.target === this) closeModal('settingModal'); });
+【トーン＆マナー】
+知的、誠実、そして情熱的。専門家として上から目線にならず、伴走者として寄り添う姿勢。`,
 
-  // 設定内
-  document.getElementById('btnDemo').addEventListener('click', loadDemoData);
-  document.getElementById('btnReset').addEventListener('click', confirmReset);
+            3: `【役割】
+あなたは集客力の高いセミナープロデューサーです。
+私が主催するオンラインイベント・個別相談会の集客用SNS投稿を作成してください。
 
-  // 画面遷移
-  document.getElementById('btnStart').addEventListener('click',   function() { goTo(1); });
-  document.getElementById('btnStep1Next').addEventListener('click', step1Next);
-  document.getElementById('btnTo3').addEventListener('click',     function() { goTo(3); });
-  document.getElementById('btnBack2').addEventListener('click',   function() { goTo(1); });
-  document.getElementById('btnTo4').addEventListener('click',     function() { goTo(4); });
-  document.getElementById('btnBack3').addEventListener('click',   function() { goTo(2); });
-  document.getElementById('btnCalc').addEventListener('click',    calcResult);
-  document.getElementById('btnBack4').addEventListener('click',   function() { goTo(3); });
-  document.getElementById('btnRestart').addEventListener('click', function() { goTo(0); });
+【前提情報】
+・私の専門職/資格： {{PROFESSION}}
+・私のターゲット層： {{TARGET}}
+・解決できる顧客の課題： {{PROBLEM}}
 
-  // コピー
-  document.getElementById('copyBtn').addEventListener('click', copyResult);
-});
+【イベント内容】
+「{{PROBLEM}}を根本解決！AI時代に取り残されないための個別WEB相談会（無料）」
 
-})();
-</script>
+【作成指示】
+・ターゲットが「自分のためのイベントだ」と直感的に思える構成にしてください。
+・【こんな方におすすめ】【この相談会で得られること】【参加方法】を箇条書きで分かりやすく整理してください。
+・焦りを煽るのではなく、この一歩でこれからの経営がどれだけ前向きになるか、明るい未来を見せるライティングにしてください。
+・SNS用のハッシュタグ（#{{PROFESSION}} #{{TARGET}} など）を最後に追加してください。`
+        };
+
+        // 初期ロード処理
+        window.onload = function() {
+            renderChecklist();
+            calcRevenue();
+            updatePrompts();
+        };
+
+        // タブ切り替え
+        function switchTab(tabId) {
+            const tabs = ['checklist', 'calculator', 'prompt', 'seminar'];
+            tabs.forEach(t => {
+                const tabBtn = document.getElementById(`tab-${t}`);
+                const contentSec = document.getElementById(`content-${t}`);
+                
+                if (t === tabId) {
+                    tabBtn.className = "flex-1 min-w-[120px] text-center py-3 px-2 sm:px-4 rounded-lg text-xs sm:text-sm font-bold transition-all duration-200 text-white bg-navy-700 shadow-md flex items-center justify-center gap-2";
+                    contentSec.classList.remove('hidden');
+                } else {
+                    tabBtn.className = "flex-1 min-w-[120px] text-center py-3 px-2 sm:px-4 rounded-lg text-xs sm:text-sm font-bold transition-all duration-200 text-slate-500 hover:text-navy-700 hover:bg-slate-50 flex items-center justify-center gap-2";
+                    contentSec.classList.add('hidden');
+                }
+            });
+        }
+
+        // チェックリストのレンダリング
+        function renderChecklist() {
+            const catA = document.getElementById('category-a');
+            const catB = document.getElementById('category-b');
+            const catC = document.getElementById('category-c');
+
+            checklistData.forEach(item => {
+                const div = document.createElement('div');
+                div.className = "flex items-start gap-2.5 p-2 rounded-lg hover:bg-white transition";
+                div.innerHTML = `
+                    <input type="checkbox" id="chk-${item.id}" value="${item.id}" onchange="updateChecklistProgress()" class="w-4 h-4 mt-1 text-blue-600 border-slate-300 rounded focus:ring-blue-500 cursor-pointer">
+                    <label for="chk-${item.id}" class="text-xs sm:text-sm text-slate-700 font-medium cursor-pointer leading-tight select-none">${item.text}</label>
+                `;
+
+                if (item.category === 'a') catA.appendChild(div);
+                if (item.category === 'b') catB.appendChild(div);
+                if (item.category === 'c') catC.appendChild(div);
+            });
+        }
+
+        // チェック進捗とアラートの処理
+        function updateChecklistProgress() {
+            const checkedBoxes = document.querySelectorAll('input[type="checkbox"]:checked');
+            const checkedCount = checkedBoxes.length;
+            
+            // カウントと進捗バーの更新
+            document.getElementById('checked-count-display').innerText = `${checkedCount} / 20`;
+            const progressPercent = (checkedCount / 20) * 100;
+            document.getElementById('progress-bar').style.width = `${progressPercent}%`;
+
+            // アクション：3つ以上チェックでアラート表示
+            const alertBox = document.getElementById('checklist-alert');
+            if (checkedCount >= 3) {
+                alertBox.classList.remove('hidden');
+            } else {
+                alertBox.classList.add('hidden');
+            }
+        }
+
+        // シミュレーターのスライダー＆入力同期
+        function syncSlider(inputId, val) {
+            document.getElementById(inputId).value = val;
+            calcRevenue();
+        }
+
+        // 収益シミュレーションロジック
+        function calcRevenue() {
+            // スライダー側のつまみ位置も同期する
+            const syncValueToSlider = (id) => {
+                const slider = document.getElementById(`${id}-slider`);
+                if (slider) {
+                    slider.value = document.getElementById(id).value;
+                }
+            };
+
+            const hourlyRate = parseFloat(document.getElementById('hourly-rate').value) || 0;
+            const savedHours = parseFloat(document.getElementById('saved-hours').value) || 0;
+            const clientPrice = parseFloat(document.getElementById('client-price').value) || 0;
+            const clientCount = parseFloat(document.getElementById('client-count').value) || 0;
+            const newPrice = parseFloat(document.getElementById('new-service-price').value) || 0;
+            const newCount = parseFloat(document.getElementById('new-service-count').value) || 0;
+
+            syncValueToSlider('hourly-rate');
+            syncValueToSlider('saved-hours');
+            syncValueToSlider('client-price');
+            syncValueToSlider('client-count');
+            syncValueToSlider('new-service-price');
+            syncValueToSlider('new-service-count');
+
+            // 1. 時間削減価値
+            const valTime = hourlyRate * savedHours;
+            // 2. 既存売上アップ価値
+            const valClient = clientPrice * clientCount;
+            // 3. 新規AI伴走価値
+            const valNew = newPrice * newCount;
+
+            // テキスト表示の更新
+            document.getElementById('val-time-reduction').innerText = `¥${valTime.toLocaleString()}`;
+            document.getElementById('val-client-increase').innerText = `¥${valClient.toLocaleString()}`;
+            document.getElementById('val-new-service').innerText = `¥${valNew.toLocaleString()}`;
+
+            // 月間・年間トータル
+            const monthlyTotal = valTime + valClient + valNew;
+            const yearlyTotal = monthlyTotal * 12;
+
+            document.getElementById('monthly-total').innerText = `¥${monthlyTotal.toLocaleString()}`;
+            document.getElementById('yearly-total').innerText = `¥${yearlyTotal.toLocaleString()}`;
+
+            // 比率バーの更新
+            const total = monthlyTotal || 1; // 0割防止
+            const pTime = Math.max(2, (valTime / total) * 100);
+            const pClient = Math.max(2, (valClient / total) * 100);
+            const pNew = Math.max(2, (valNew / total) * 100);
+
+            document.getElementById('ratio-time').style.width = `${pTime}%`;
+            document.getElementById('ratio-client').style.width = `${pClient}%`;
+            document.getElementById('ratio-new').style.width = `${pNew}%`;
+        }
+
+        // プロンプトテンプレートの変数置換とレンダリング
+        function updatePrompts() {
+            const profession = document.getElementById('p-profession').value || "行政書士";
+            const target = document.getElementById('p-target').value || "創業期のIT経営者";
+            const problem = document.getElementById('p-problem').value || "煩雑な手続き";
+
+            for (let i = 1; i <= 3; i++) {
+                let text = promptTemplates[i];
+                // 変数を置換する
+                text = text.replace(/{{PROFESSION}}/g, profession)
+                           .replace(/{{TARGET}}/g, target)
+                           .replace(/{{PROBLEM}}/g, problem);
+                
+                document.getElementById(`prompt-text-${i}`).innerText = text;
+            }
+        }
+
+        // クリップボードコピー処理＆トースト通知
+        function copyPrompt(elementId) {
+            const textToCopy = document.getElementById(elementId).innerText;
+            
+            // 古いブラウザやiframeの制約でも動作するフォールバック
+            const tempTextArea = document.createElement("textarea");
+            tempTextArea.value = textToCopy;
+            document.body.appendChild(tempTextArea);
+            tempTextArea.select();
+            
+            try {
+                const successful = document.execCommand('copy');
+                if (successful) {
+                    showToast("プロンプトをクリップボードにコピーしました！", "success");
+                } else {
+                    showToast("コピーできませんでした。直接選択してコピーしてください。", "error");
+                }
+            } catch (err) {
+                showToast("非対応のブラウザです。直接選択してコピーしてください。", "error");
+            }
+            
+            document.body.removeChild(tempTextArea);
+        }
+
+        // カスタムトースト表示
+        function showToast(message, type = "success") {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = `flex items-center gap-2 px-4 py-3 rounded-lg shadow-lg text-white text-xs sm:text-sm font-semibold transition-all duration-300 transform translate-y-2 opacity-0 pointer-events-auto max-w-sm border ${
+                type === 'success' ? 'bg-emerald-600 border-emerald-500' : 'bg-rose-600 border-rose-500'
+            }`;
+            
+            const icon = type === 'success' ? '<i class="fa-solid fa-circle-check"></i>' : '<i class="fa-solid fa-circle-exclamation"></i>';
+            toast.innerHTML = `${icon} <span>${message}</span>`;
+            
+            container.appendChild(toast);
+
+            // アニメーションイン
+            setTimeout(() => {
+                toast.classList.remove('translate-y-2', 'opacity-0');
+            }, 10);
+
+            // 3秒後にアニメーションアウトしてから消去
+            setTimeout(() => {
+                toast.classList.add('translate-y-2', 'opacity-0');
+                setTimeout(() => {
+                    container.removeChild(toast);
+                }, 300);
+            }, 3000);
+        }
+    </script>
 </body>
 </html>
